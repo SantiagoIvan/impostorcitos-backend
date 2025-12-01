@@ -41,3 +41,5 @@ Thumbs.db
 # Optional:
 # If using Docker
 docker-data/
+
+/src/generated/prisma
