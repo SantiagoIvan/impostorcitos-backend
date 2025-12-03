@@ -1,6 +1,6 @@
-export default interface Message {
+export interface Message {
     id: number
     text: string
     sender: string
-    time: string
+    createdAt: string
 }

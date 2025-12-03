@@ -1,11 +1,20 @@
+require('dotenv').config();
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
-import Room from "./types/room";
-import Message from "./types/message";
 import { defaultRooms, defaultMessages } from "./db/init";
+import cors from "cors";
+import { RoomEvents, Room, SocketEvents } from "./shared";
+
+const port = process.env.PORT || 4000
 
 const app = express();
+
+app.use(cors({
+    origin: "http://localhost:3000",  // Next.js
+    credentials: true
+}));
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -15,40 +24,24 @@ const io = new Server(server, {
 });
 
 // Lista de rooms en memoria
-const rooms: Room[] = defaultRooms
-const messages: Message[] = defaultMessages
+export const rooms: any[] = defaultRooms
+export const messages: any[] = defaultMessages
 
-io.on("connection", (socket) => {
+
+io.on(SocketEvents.CONNECTION, (socket) => {
   console.log("Cliente conectado:", socket.id);
 
   // Enviar rooms al conectarse
-  socket.emit("rooms:list", rooms);
-  socket.emit("messages:list", rooms);
-  /*
-  // Crear un room
-  socket.on("rooms:create", (roomName) => {
-    const room = { name: roomName, id: Date.now() };
-    //rooms.push(rooms);
+  socket.emit(RoomEvents.LIST, rooms);
 
-    // Broadcast a todos
-    io.emit("rooms:list", rooms);
-  });
+  socket.on(RoomEvents.CREATE, (room : Room) => {
+    console.log(room)
 
-  // Unirse a un room
-  socket.on("room:join", (roomId) => {
-    socket.join(roomId);
-  });
-
-  // Recibir mensaje
-  socket.on("chat:message", ({ roomId, message }) => {
-    io.to(roomId).emit("chat:message", {
-      message,
-      sender: socket.id,
-      timestamp: Date.now(),
-    });
-  });*/
+    rooms.push(room)
+    socket.emit(RoomEvents.LIST, rooms);
+  })
 });
 
-server.listen(4000, () => {
-  console.log("Socket.IO server escuchando en puerto 4000");
+server.listen(port, () => {
+  console.log(`Socket.IO server escuchando en puerto ${port}`);
 });
