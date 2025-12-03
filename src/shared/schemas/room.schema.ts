@@ -7,7 +7,7 @@ export const createRoomSchema = z.object({
     password: z.string().optional(),
     discussionTime: z.number().min(10, "Debe ser mayor a 10 segundos"),
     voteTime: z.number().min(10, "Debe ser mayor a 10 segundos"),
-    gameTime: z.number().min(30, "Debe ser mayor a 30 segundos"),
+    moveTime: z.number().min(30, "Debe ser mayor a 30 segundos"),
     maxPlayers: z.number().min(2, "Debe permitir al menos 2 jugadores"),
 }).refine(
     (data) =>

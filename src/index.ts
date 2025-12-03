@@ -2,9 +2,10 @@ require('dotenv').config();
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
-import { defaultRooms, defaultMessages } from "./db/init";
 import cors from "cors";
-import { RoomEvents, Room, SocketEvents } from "./shared";
+import { RoomEvents, Room, SocketEvents, CreateRoomDto } from "./shared";
+import { RoomService } from "./services";
+import { emitRoomList } from "./websockets/room.sockets";
 
 const port = process.env.PORT || 4000
 
@@ -23,22 +24,15 @@ const io = new Server(server, {
   }
 });
 
-// Lista de rooms en memoria
-export const rooms: any[] = defaultRooms
-export const messages: any[] = defaultMessages
-
-
 io.on(SocketEvents.CONNECTION, (socket) => {
   console.log("Cliente conectado:", socket.id);
 
   // Enviar rooms al conectarse
-  socket.emit(RoomEvents.LIST, rooms);
+  emitRoomList(socket)
 
-  socket.on(RoomEvents.CREATE, (room : Room) => {
-    console.log(room)
-
-    rooms.push(room)
-    socket.emit(RoomEvents.LIST, rooms);
+  socket.on(RoomEvents.CREATE, (roomDto : CreateRoomDto) => {
+    RoomService.addRoom(roomDto)
+    emitRoomList(socket)
   })
 });
 

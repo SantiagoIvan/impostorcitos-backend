@@ -1,5 +1,17 @@
 import { RoomType } from "../shared"
 
+let seq_message = 2
+let seq_room = 6
+
+export function nextSeqRoom(){
+    seq_room += 1
+    return seq_room
+}
+export function nextSeqMessage(){
+    seq_message += 1
+    return seq_message
+} 
+
 export const defaultMessages = [
     {
         id: 1,
@@ -24,7 +36,7 @@ export const defaultRooms = [
         discussionTime: 60,
         voteTime: 10,
         moveTime: 10,
-        playersLimit: 6,
+        maxPlayers: 6,
         players: [
             {
                 name: "santu"
@@ -39,7 +51,7 @@ export const defaultRooms = [
         discussionTime: 40,
         voteTime: 50,
         moveTime: 50,
-        playersLimit: 4,
+        maxPlayers: 4,
         players: [
             {
                 name: "santu2"
@@ -55,7 +67,7 @@ export const defaultRooms = [
         discussionTime: 60,
         voteTime: 10,
         moveTime: 10,
-        playersLimit: 4,
+        maxPlayers: 4,
         players: [
             {
                 name: "santu3"
@@ -70,7 +82,7 @@ export const defaultRooms = [
         discussionTime: 60,
         voteTime: 10,
         moveTime: 10,
-        playersLimit: 6,
+        maxPlayers: 6,
         players: [
             {
                 name: "santu4"
@@ -85,7 +97,7 @@ export const defaultRooms = [
         discussionTime: 60,
         voteTime: 10,
         moveTime: 10,
-        playersLimit: 6,
+        maxPlayers: 6,
         players: [
             {
                 name: "santu5"
@@ -101,7 +113,7 @@ export const defaultRooms = [
         discussionTime: 60,
         voteTime: 10,
         moveTime: 10,
-        playersLimit: 6,
+        maxPlayers: 6,
         players: [
             {
                 name: "santu6"
