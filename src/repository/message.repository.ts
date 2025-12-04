@@ -1,5 +1,6 @@
 import { defaultMessages } from "../db/init"
+import { Message } from "../shared"
 
 export const MessageRepository = {
-    getMessages: () => defaultMessages
+    getMessages: () : Message[]=> defaultMessages
 }

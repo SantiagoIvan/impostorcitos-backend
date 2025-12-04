@@ -30,6 +30,9 @@ export const defaultMessages = [
 export const defaultRooms = [
     {
         id: 1,
+        admin: {
+            name: "santu"
+        },
         name: "Room Alpha",
         privacy: RoomType.PUBLIC,
         createdAt: "Hace 2 horas",
@@ -45,6 +48,9 @@ export const defaultRooms = [
     },
     {
         id: 2,
+        admin: {
+            name: "santu2"
+        },
         name: "Room Beta",
         privacy: RoomType.PUBLIC,
         createdAt: "Hace 1 horas",
@@ -60,6 +66,9 @@ export const defaultRooms = [
     },
     {
         id: 3,
+        admin: {
+            name: "santu3"
+        },
         name: "Room Gamma",
         privacy: RoomType.PRIVATE,
         password: "123",
@@ -76,6 +85,9 @@ export const defaultRooms = [
     },
     {
         id: 4,
+        admin: {
+            name: "santu4"
+        },
         name: "Room con tu hermana",
         privacy: RoomType.PUBLIC,
         createdAt: "Hace 5 horas",
@@ -91,6 +103,9 @@ export const defaultRooms = [
     },
     {
         id: 5,
+        admin: {
+            name: "santu5"
+        },
         name: "Room con tu vieja",
         privacy: RoomType.PUBLIC,
         createdAt: "Hace 20 horas",
@@ -106,6 +121,9 @@ export const defaultRooms = [
     },
     {
         id: 6,
+        admin: {
+            name: "santu6"
+        },
         name: "Room epsilon",
         privacy: RoomType.PRIVATE,
         password: "123",

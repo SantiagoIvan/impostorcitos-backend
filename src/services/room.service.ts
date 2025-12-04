@@ -1,15 +1,18 @@
 import { nextSeqRoom } from "../db/init"
 import { RoomRepository } from "../repository"
-import { CreateRoomDto } from "../shared"
+import { CreateRoomDto, Room } from "../shared"
+import { PlayerService } from "./player.service"
 
 export const RoomService = {
-    getRooms: () => RoomRepository.getRooms(),
-    addRoom: (roomDto: CreateRoomDto) => {
+    getRooms: () : Room[]=> RoomRepository.getRooms(),
+    addRoom: (roomDto: CreateRoomDto) : Room => {
+        const admin = PlayerService.createPlayer(roomDto.admin)
         const newRoom = {
             id: nextSeqRoom(),
             ...roomDto,
+            admin,
             createdAt: new Date().toLocaleDateString(),
-            players: []
+            players: [admin]
         }
         RoomRepository.addRoom(newRoom)
         return newRoom

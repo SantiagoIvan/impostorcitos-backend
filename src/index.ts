@@ -3,16 +3,16 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
-import { RoomEvents, Room, SocketEvents, CreateRoomDto } from "./shared";
+import { RoomEvents, SocketEvents, CreateRoomDto } from "./shared";
 import { RoomService } from "./services";
 import { emitRoomList } from "./websockets/room.sockets";
 
-const port = process.env.PORT || 4000
+const PORT = process.env.PORT || 4000
 
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:3000",  // Next.js
+    origin: "*",
     credentials: true
 }));
 
@@ -32,10 +32,10 @@ io.on(SocketEvents.CONNECTION, (socket) => {
 
   socket.on(RoomEvents.CREATE, (roomDto : CreateRoomDto) => {
     RoomService.addRoom(roomDto)
-    emitRoomList(socket)
+    io.emit(RoomEvents.LIST, RoomService.getRooms())
   })
 });
 
-server.listen(port, () => {
-  console.log(`Socket.IO server escuchando en puerto ${port}`);
+server.listen(PORT, () => {
+  console.log(`Socket.IO server escuchando en puerto ${PORT}`);
 });
