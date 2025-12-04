@@ -11,7 +11,7 @@ export const RoomService = {
             id: nextSeqRoom(),
             ...roomDto,
             admin,
-            createdAt: new Date().toLocaleDateString(),
+            createdAt: new Date().toISOString(),
             players: [admin]
         }
         RoomRepository.addRoom(newRoom)

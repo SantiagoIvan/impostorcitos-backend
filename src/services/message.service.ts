@@ -7,7 +7,7 @@ export const MessageService = {
         const newMsg = {
             id: nextSeqMessage(),
             ...msgDto,
-            createdAt: new Date().toLocaleDateString()
+            createdAt: new Date().toISOString()
         }
         MessageRepository.addMessage(newMsg)
         return newMsg
