@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import { SocketEvents } from "./shared";
 import { emitRoomList, registerAllRoomEvents } from "./websockets/room.sockets";
+import { registerAllMessageEvents } from "./websockets/message.sockets";
 
 const PORT = process.env.PORT || 4000
 
@@ -31,6 +32,7 @@ io.on(SocketEvents.CONNECTION, (socket) => {
 
   // Registramos a los eventos de los rooms
   registerAllRoomEvents(socket, io)
+  registerAllMessageEvents(socket, io)
 });
 
 server.listen(PORT, () => {
