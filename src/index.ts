@@ -3,9 +3,8 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
-import { RoomEvents, SocketEvents, CreateRoomDto } from "./shared";
-import { RoomService } from "./services";
-import { emitRoomList } from "./websockets/room.sockets";
+import { SocketEvents } from "./shared";
+import { emitRoomList, registerAllRoomEvents } from "./websockets/room.sockets";
 
 const PORT = process.env.PORT || 4000
 
@@ -30,10 +29,8 @@ io.on(SocketEvents.CONNECTION, (socket) => {
   // Enviar rooms al conectarse
   emitRoomList(socket)
 
-  socket.on(RoomEvents.CREATE, (roomDto : CreateRoomDto) => {
-    RoomService.addRoom(roomDto)
-    io.emit(RoomEvents.LIST, RoomService.getRooms())
-  })
+  // Registramos a los eventos de los rooms
+  registerAllRoomEvents(socket, io)
 });
 
 server.listen(PORT, () => {
