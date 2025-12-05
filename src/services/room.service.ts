@@ -6,7 +6,7 @@ import { PlayerService } from "./player.service"
 export const RoomService = {
     getRooms: () : Room[]=> RoomRepository.getRooms(),
     addRoom: (roomDto: CreateRoomDto) : Room => {
-        const admin = PlayerService.createPlayer(roomDto.admin)
+        const admin = PlayerService.createPlayer(roomDto.admin) // aca deberia obtener el player de la BD en realidad
         const newRoom = {
             id: nextSeqRoom(),
             ...roomDto,
