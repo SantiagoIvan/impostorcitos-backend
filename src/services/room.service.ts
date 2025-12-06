@@ -1,6 +1,6 @@
 import { nextSeqRoom } from "../db/init"
 import { RoomRepository } from "../repository"
-import { CreateRoomDto, Room } from "../shared"
+import { CreateRoomDto, JoinRoomDto, Player, Room } from "../shared"
 import { PlayerService } from "./player.service"
 
 export const RoomService = {
@@ -16,5 +16,13 @@ export const RoomService = {
         }
         RoomRepository.addRoom(newRoom)
         return newRoom
+    },
+    isPlayerInRoom: (incomingPlayer: JoinRoomDto) : boolean => {
+        const room = RoomRepository.getRoomById(incomingPlayer.roomId)
+        
+        return room? room.players.some((player:Player) => player.name == incomingPlayer.username) : false
+    },
+    addPlayerToRoom: (incomingPlayer: JoinRoomDto) => {
+        RoomRepository.getRoomById(incomingPlayer.roomId)?.players.push(PlayerService.createPlayer(incomingPlayer.username))
     }
 }

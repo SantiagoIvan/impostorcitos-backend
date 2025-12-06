@@ -6,5 +6,6 @@ export const RoomRepository = {
     addRoom: (room: Room) : Room=> {
         defaultRooms.push(room)
         return room
-    }
+    },
+    getRoomById: (id: string) => defaultRooms.find((room: Room) => room.id == id)
 }
