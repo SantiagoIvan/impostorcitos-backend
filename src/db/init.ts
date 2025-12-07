@@ -1,4 +1,4 @@
-import { RoomType } from "../shared"
+import { Message, Room, RoomType } from "../shared"
 
 let seq_message = 2
 let seq_room = 6
@@ -12,7 +12,7 @@ export function nextSeqMessage(){
     return seq_message.toString()
 } 
 
-export const defaultMessages = [
+export const defaultMessages : Message[]= [
     {
         id: "1",
         text: "¡Hola! ¿Cómo estás?",
@@ -27,7 +27,7 @@ export const defaultMessages = [
     },
 ]
 
-export const defaultRooms = [
+export const defaultRooms : Room[]= [
     {
         id: "1",
         admin: {
@@ -41,12 +41,7 @@ export const defaultRooms = [
         voteTime: 10,
         moveTime: 10,
         maxPlayers: 6,
-        players: [
-            {
-                name: "santu",
-                isReady: false
-            }
-        ]
+        players: []
     },
     {
         id: "2",
@@ -61,12 +56,7 @@ export const defaultRooms = [
         voteTime: 50,
         moveTime: 50,
         maxPlayers: 4,
-        players: [
-            {
-                name: "santu2",
-                isReady: false
-            }
-        ]
+        players: []
     },
     {
         id: "3",
@@ -82,12 +72,7 @@ export const defaultRooms = [
         voteTime: 10,
         moveTime: 10,
         maxPlayers: 4,
-        players: [
-            {
-                name: "santu3",
-                isReady: false
-            }
-        ]
+        players: []
     },
     {
         id: "4",
@@ -102,12 +87,7 @@ export const defaultRooms = [
         voteTime: 10,
         moveTime: 10,
         maxPlayers: 6,
-        players: [
-            {
-                name: "santu4",
-                isReady: false
-            }
-        ]
+        players: []
     },
     {
         id: "5",
@@ -122,12 +102,7 @@ export const defaultRooms = [
         voteTime: 10,
         moveTime: 10,
         maxPlayers: 6,
-        players: [
-            {
-                name: "santu5",
-                isReady: false
-            }
-        ]
+        players: []
     },
     {
         id: "6",
@@ -143,11 +118,6 @@ export const defaultRooms = [
         voteTime: 10,
         moveTime: 10,
         maxPlayers: 6,
-        players: [
-            {
-                name: "santu6",
-                isReady: false
-            }
-        ]
+        players: []
     },
 ]
