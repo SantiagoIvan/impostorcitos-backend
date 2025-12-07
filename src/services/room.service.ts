@@ -12,7 +12,7 @@ export const RoomService = {
             ...roomDto,
             admin,
             createdAt: new Date().toISOString(),
-            players: [admin]
+            players: []
         }
         RoomRepository.addRoom(newRoom)
         return newRoom
