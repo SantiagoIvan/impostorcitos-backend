@@ -1,5 +1,5 @@
 import { defaultRooms } from "../db/init";
-import { Room } from "../shared";
+import { defaultRoom, Room } from "../shared";
 
 export const RoomRepository = {
     getRooms: () : Room[]=> defaultRooms,
@@ -7,5 +7,5 @@ export const RoomRepository = {
         defaultRooms.push(room)
         return room
     },
-    getRoomById: (id: string) => defaultRooms.find((room: Room) => room.id == id)
+    getRoomById: (id: string) => defaultRooms.find((room: Room) => room.id == id) || defaultRoom
 }
