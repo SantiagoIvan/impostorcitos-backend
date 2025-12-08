@@ -1,0 +1,1 @@
+export const GENERAL_CHAT_CHANNEL = "GENERAL"
