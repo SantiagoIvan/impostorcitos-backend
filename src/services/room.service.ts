@@ -29,6 +29,15 @@ export const RoomService = {
     removePlayerfromRoom: (outcomingPlayer: JoinRoomDto): Room => {
         const targetRoom = RoomRepository.getRoomById(outcomingPlayer.roomId)
         targetRoom.players = targetRoom.players.filter((player: Player) => player.name !== outcomingPlayer.username)
-        return RoomRepository.getRoomById(outcomingPlayer.roomId)
+        return targetRoom
+    },
+    togglePlayerReadyInRoom: (userReady : JoinRoomDto): Room => {
+        const targetRoom = RoomRepository
+                                .getRoomById(userReady.roomId)           
+        const targetPlayer = targetRoom.players.find((player: Player) => player.name === userReady.username)
+        if(targetPlayer) {
+            targetPlayer.isReady = !targetPlayer.isReady
+        }
+        return targetRoom
     }
 }

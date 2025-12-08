@@ -5,5 +5,7 @@ export enum RoomEvents {
     JOIN = "room:join",
     JOINED = "room:joined",
     LEAVE = "room:leave",
-    USER_LEFT = "room:user_left"
+    USER_LEFT = "room:user_left",
+    READY = "room:ready",
+    USER_READY = "room:user_ready",
 }

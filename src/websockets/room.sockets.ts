@@ -12,7 +12,6 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     
   socket.on(RoomEvents.CREATE, (roomDto : CreateRoomDto) => {
     const newRoom = RoomService.addRoom(roomDto)
-    console.log("Room creado: ", roomDto)
     io.emit(RoomEvents.CREATED, newRoom)
   })
   
@@ -40,6 +39,15 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     const updatedRoom = RoomService.removePlayerfromRoom(outcomingPlayer)
     socket.leave(outcomingPlayer.roomId)
     io.emit(RoomEvents.USER_LEFT, updatedRoom)
+  })
+
+  socket.on(RoomEvents.READY, (userReady: JoinRoomDto) => {
+    if(!RoomService.isPlayerInRoom(userReady)) return
+    
+    // Jugador activa el boton Ready y le avisa al resto de los jugadores
+    console.log(`Player ${userReady.username} is ready for room ${userReady.roomId}`)
+    const updatedRoom = RoomService.togglePlayerReadyInRoom(userReady)
+    io.to(userReady.roomId).emit(RoomEvents.USER_READY, updatedRoom)
   })
 
 }
