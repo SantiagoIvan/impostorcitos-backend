@@ -4,13 +4,7 @@ import { CreateMessageDto, Message } from "../shared"
 
 export const MessageService = {
     addMessage: (msgDto: CreateMessageDto) : Message => {
-        const newMsg = {
-            id: nextSeqMessage(),
-            text: msgDto.text,
-            sender: msgDto.sender,
-            createdAt: new Date().toISOString()
-        }
-        MessageRepository.addMessage(newMsg)
+        const newMsg = MessageRepository.addMessage(msgDto)
         return newMsg
     }
 }

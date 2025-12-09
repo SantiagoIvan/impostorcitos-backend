@@ -1,5 +1,5 @@
 import { Socket } from "socket.io"
-import { RoomService } from "../services"
+import { GameService, RoomService } from "../services"
 import { RoomEvents, Room, CreateRoomDto, JoinRoomDto, Player } from "../shared"
 import { Server } from "socket.io";
 import { GENERAL_CHAT_CHANNEL } from "../shared/constants";
@@ -53,9 +53,10 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
 
   socket.on(RoomEvents.START_GAME, (roomId : string) => {
     // Crear nuevo Game object y eliminar room de la lista
+    const newGame = GameService.createGame(roomId)
     const rooms = RoomService.removeRoom(roomId)
     io.emit(RoomEvents.LIST, rooms)
-    io.to(roomId).emit(RoomEvents.REDIRECT_TO_GAME, roomId)
+    io.to(roomId).emit(RoomEvents.REDIRECT_TO_GAME, newGame)
     registerGameEvents(socket, io)
   })
 }

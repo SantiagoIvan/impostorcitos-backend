@@ -1,4 +1,3 @@
-import { nextSeqRoom } from "../db/init"
 import { RoomRepository } from "../repository"
 import { CreateRoomDto, JoinRoomDto, Player, Room } from "../shared"
 import { PlayerService } from "./player.service"
@@ -6,14 +5,7 @@ import { PlayerService } from "./player.service"
 export const RoomService = {
     getRooms: () : Room[]=> RoomRepository.getRooms(),
     addRoom: (roomDto: CreateRoomDto) : Room => { // aca deberia obtener el player de la BD en realidad
-        const newRoom = {
-            id: nextSeqRoom(),
-            ...roomDto,
-            admin: roomDto.admin,
-            createdAt: new Date().toISOString(),
-            players: []
-        }
-        RoomRepository.addRoom(newRoom)
+        const newRoom = RoomRepository.addRoom(roomDto)
         return newRoom
     },
     isPlayerInRoom: (playerDto: JoinRoomDto) : boolean => {
@@ -39,6 +31,7 @@ export const RoomService = {
         }
         return targetRoom
     },
+    getRoomById: (id: string): Room => RoomRepository.getRoomById(id),
     removeRoom: (targetRoomId: string): Room[] => {
         return RoomRepository.removeRoom(targetRoomId)
     }

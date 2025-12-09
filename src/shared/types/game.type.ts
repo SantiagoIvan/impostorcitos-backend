@@ -1,11 +1,11 @@
-import {Round} from "@/shared";
+import {Round} from "./round.type";
 
 export interface Game {
+    id: string
     topic: string
     secretWord: string
     activePlayers: string[]
     impostor: string
     rounds: Round[]
-    currentRound: Round
     impostorWonTheGame: boolean
 }

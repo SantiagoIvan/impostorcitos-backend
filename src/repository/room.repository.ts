@@ -1,11 +1,20 @@
 import { defaultRooms } from "../db/init";
-import { defaultRoom, Room, Player} from "../shared";
+import { defaultRoom, Room, Player, CreateRoomDto} from "../shared";
+import { nextSeqRoom } from "../db/init"
+
 
 export const RoomRepository = {
     getRooms: () : Room[]=> defaultRooms,
-    addRoom: (room: Room) : Room=> {
-        defaultRooms.push(room)
-        return room
+    addRoom: (roomDto: CreateRoomDto) : Room=> {
+        const newRoom = {
+                    id: nextSeqRoom(),
+                    ...roomDto,
+                    admin: roomDto.admin,
+                    createdAt: new Date().toISOString(),
+                    players: []
+                }
+        defaultRooms.push(newRoom)
+        return newRoom
     },
     getRoomById: (id: string) => defaultRooms.find((room: Room) => room.id == id) || defaultRoom,
     addPlayerToRoom: (player : Player, roomId: string) => {

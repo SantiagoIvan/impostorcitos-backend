@@ -1,4 +1,4 @@
-import { Message, Room, RoomType } from "../shared"
+import { Game, Message, Room, RoomType } from "../shared"
 
 let seq_message = 2
 let seq_room = 6
@@ -61,3 +61,5 @@ export const defaultRooms : Room[]= [
         players: []
     }
 ]
+
+export const gamesInProgress : Game[] = []
