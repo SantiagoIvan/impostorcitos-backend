@@ -2,7 +2,7 @@ import { RoomType } from "../index";
 
 export const defaultRoom = {
     id: "0",
-    admin: { id: "0", name: "", isReady: false },
+    admin: "",
     name: "",
     password: "",
     privacy: RoomType.PUBLIC,

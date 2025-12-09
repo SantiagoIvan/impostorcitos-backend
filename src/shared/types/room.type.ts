@@ -3,7 +3,7 @@ import {Player} from "./player.type"
 
 export interface Room {
     id: string
-    admin: string,
+    admin: string
     name: string
     password?: string
     privacy: RoomType

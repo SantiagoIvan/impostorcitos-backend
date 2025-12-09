@@ -1,1 +1,2 @@
 export const GENERAL_CHAT_CHANNEL = "GENERAL"
+export const MIN_PLAYERS_QUANTITY = 3

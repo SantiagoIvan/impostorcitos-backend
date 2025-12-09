@@ -1,5 +1,6 @@
 import { defaultRooms } from "../db/init";
-import { defaultRoom, Room } from "../shared";
+import { defaultRoom, JoinRoomDto, Room } from "../shared";
+import { PlayerService } from "../services";
 
 export const RoomRepository = {
     getRooms: () : Room[]=> defaultRooms,
@@ -7,5 +8,10 @@ export const RoomRepository = {
         defaultRooms.push(room)
         return room
     },
-    getRoomById: (id: string) => defaultRooms.find((room: Room) => room.id == id) || defaultRoom
+    getRoomById: (id: string) => defaultRooms.find((room: Room) => room.id == id) || defaultRoom,
+    addPlayerToRoom: (incomingPlayer : JoinRoomDto) => {
+        const room = (defaultRooms.find((room: Room) => room.id == incomingPlayer.roomId) || defaultRoom)
+        room.players.push(PlayerService.createPlayer(incomingPlayer.username))
+        return room
+    }
 }

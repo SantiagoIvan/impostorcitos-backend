@@ -5,12 +5,11 @@ import { PlayerService } from "./player.service"
 
 export const RoomService = {
     getRooms: () : Room[]=> RoomRepository.getRooms(),
-    addRoom: (roomDto: CreateRoomDto) : Room => {
-        const admin = PlayerService.createPlayer(roomDto.admin) // aca deberia obtener el player de la BD en realidad
+    addRoom: (roomDto: CreateRoomDto) : Room => { // aca deberia obtener el player de la BD en realidad
         const newRoom = {
             id: nextSeqRoom(),
             ...roomDto,
-            admin,
+            admin: roomDto.admin,
             createdAt: new Date().toISOString(),
             players: []
         }
@@ -23,8 +22,7 @@ export const RoomService = {
         return room.players.some((player:Player) => player.name == playerDto.username)
     },
     addPlayerToRoom: (incomingPlayer: JoinRoomDto): Room => {
-        RoomRepository.getRoomById(incomingPlayer.roomId).players.push(PlayerService.createPlayer(incomingPlayer.username))
-        return RoomRepository.getRoomById(incomingPlayer.roomId)
+        return RoomRepository.addPlayerToRoom(incomingPlayer)
     },
     removePlayerfromRoom: (outcomingPlayer: JoinRoomDto): Room => {
         const targetRoom = RoomRepository.getRoomById(outcomingPlayer.roomId)
