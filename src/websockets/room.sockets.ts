@@ -3,6 +3,7 @@ import { RoomService } from "../services"
 import { RoomEvents, Room, CreateRoomDto, JoinRoomDto, Player } from "../shared"
 import { Server } from "socket.io";
 import { GENERAL_CHAT_CHANNEL } from "../shared/constants";
+import { registerGameEvents } from "./game.sockets";
 
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: Room[]) => void }) => {
   socket.emit(RoomEvents.LIST, RoomService.getRooms())
@@ -50,4 +51,9 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     io.to(userReady.roomId).emit(RoomEvents.USER_READY, updatedRoom)
   })
 
+  socket.on(RoomEvents.START_GAME, (roomId : string) => {
+    // eliminar room de la lista de Rooms
+    io.to(roomId).emit(RoomEvents.REDIRECT_TO_GAME, roomId)
+    registerGameEvents(socket, io)
+  })
 }

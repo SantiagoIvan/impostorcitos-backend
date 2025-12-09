@@ -2,3 +2,7 @@ export * from "./message.type";
 export * from "./player.type";
 export * from "./room.type";
 export * from "./roomType.enum";
+export * from "./game.type"
+export * from "./move.type"
+export * from "./round.type"
+export * from "./vote.type"
