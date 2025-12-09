@@ -22,7 +22,8 @@ export const RoomService = {
         return room.players.some((player:Player) => player.name == playerDto.username)
     },
     addPlayerToRoom: (incomingPlayer: JoinRoomDto): Room => {
-        return RoomRepository.addPlayerToRoom(incomingPlayer)
+        const player = PlayerService.createPlayer(incomingPlayer.username)
+        return RoomRepository.addPlayerToRoom(player, incomingPlayer.roomId)
     },
     removePlayerfromRoom: (outcomingPlayer: JoinRoomDto): Room => {
         const targetRoom = RoomRepository.getRoomById(outcomingPlayer.roomId)
@@ -37,5 +38,8 @@ export const RoomService = {
             targetPlayer.isReady = !targetPlayer.isReady
         }
         return targetRoom
+    },
+    removeRoom: (targetRoomId: string): Room[] => {
+        return RoomRepository.removeRoom(targetRoomId)
     }
 }

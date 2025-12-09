@@ -16,7 +16,8 @@ export function nextSeqMessage(){
 export function nextSeqGame(){
     seq_game += 1
     return seq_game.toString()
-} 
+}
+
 
 export const defaultMessages : Message[]= [
     {

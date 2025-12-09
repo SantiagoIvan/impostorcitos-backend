@@ -1,6 +1,5 @@
 import { defaultRooms } from "../db/init";
-import { defaultRoom, JoinRoomDto, Room } from "../shared";
-import { PlayerService } from "../services";
+import { defaultRoom, Room, Player} from "../shared";
 
 export const RoomRepository = {
     getRooms: () : Room[]=> defaultRooms,
@@ -9,9 +8,20 @@ export const RoomRepository = {
         return room
     },
     getRoomById: (id: string) => defaultRooms.find((room: Room) => room.id == id) || defaultRoom,
-    addPlayerToRoom: (incomingPlayer : JoinRoomDto) => {
-        const room = (defaultRooms.find((room: Room) => room.id == incomingPlayer.roomId) || defaultRoom)
-        room.players.push(PlayerService.createPlayer(incomingPlayer.username))
+    addPlayerToRoom: (player : Player, roomId: string) => {
+        const room = (defaultRooms.find((room: Room) => room.id == roomId) || defaultRoom)
+        room.players.push(player)
         return room
+    },
+    removeRoom: (targetRoomId: string): Room[] => {
+        let indexOfTarget = 0
+        for (let index = 0; index < defaultRooms.length; index++) {
+            if(defaultRooms[index].id === targetRoomId){
+                indexOfTarget = index
+                break
+            }
+        }
+        defaultRooms.splice(indexOfTarget, 1)
+        return defaultRooms
     }
 }

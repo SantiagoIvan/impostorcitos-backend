@@ -52,7 +52,9 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   })
 
   socket.on(RoomEvents.START_GAME, (roomId : string) => {
-    // eliminar room de la lista de Rooms
+    // Crear nuevo Game object y eliminar room de la lista
+    const rooms = RoomService.removeRoom(roomId)
+    io.emit(RoomEvents.LIST, rooms)
     io.to(roomId).emit(RoomEvents.REDIRECT_TO_GAME, roomId)
     registerGameEvents(socket, io)
   })
