@@ -9,7 +9,6 @@ export const registerMessageEvents = (socket: Socket, io: Server) => {
   socket.join(GENERAL_CHAT_CHANNEL)
   
   socket.on(MessageEvents.CREATE, (msgDto : CreateMessageDto) => {
-    console.log("new message to ", msgDto)
     const newMessage = MessageService.addMessage(msgDto)
     if(!msgDto.roomId){
       io.to(GENERAL_CHAT_CHANNEL).emit(MessageEvents.CREATED, newMessage)

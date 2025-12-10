@@ -1,8 +1,10 @@
-import { Game, Message, Room, RoomType } from "../shared"
+import { Game, Message, Room, RoomType, SocketUser } from "../shared"
 
-let seq_message = 2
-let seq_room = 6
+let seq_message = 0
+let seq_room = 2
 let seq_game = 0
+
+export const socketUserMap : SocketUser[] = []
 
 export function nextSeqRoom(){
     seq_room += 1
@@ -19,20 +21,8 @@ export function nextSeqGame(){
 }
 
 
-export const defaultMessages : Message[]= [
-    {
-        id: "1",
-        text: "¡Hola! ¿Cómo estás?",
-        sender: "other",
-        createdAt: new Date().toISOString(),
-    },
-    {
-        id: "2",
-        text: "Excelente, trabajando en el nuevo proyecto",
-        sender: "random",
-        createdAt: new Date().toISOString(),
-    },
-]
+
+export const defaultMessages : Message[]= []
 
 export const defaultRooms : Room[]= [
     {
