@@ -55,20 +55,20 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   socket.on(RoomEvents.START_GAME, (roomId : string) => {
     // Crear nuevo Game object y eliminar room de la lista
     const newGame = GameService.createGame(roomId)
-    console.log("New game created ", newGame)
     const rooms = RoomService.removeRoom(roomId)
     io.emit(RoomEvents.LIST, rooms)
     io.to(roomId).emit(RoomEvents.REDIRECT_TO_GAME, newGame)
   })
 
   socket.on(GameEvents.PLAYER_READY, ({username, gameId}) => {
-    // contar players.isReady del room
+    // Encontramos al jugador en activePlayers dentro del game y le ponemos el Ready
     const game = GameService.getGameById(gameId)
     const found = game.activePlayers.find((player: Player) => player.name === username)
     if(found){
       found.isReady = true
     }
     if(game.activePlayers.every((player: Player) => player.isReady)){
+      // TODO falta suscribir cada socket a los eventos del juego con un registerGameEvents antes de emitir el All_Ready
       io.to(game.room.id).emit(GameEvents.ALL_READY)
     }
   })

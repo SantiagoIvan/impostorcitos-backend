@@ -1,18 +1,19 @@
 import { GameRepository } from "../repository";
 import { Game, Player } from "../shared";
-import { PlayerService } from "./player.service";
+import { RandomGeneratorService } from "./randomGenerator.service";
 import { RoomService } from "./room.service";
 
 export const GameService = {
     createGame: (roomId: string) : Game => {
         const room = RoomService.getRoomById(roomId)
+        const randomTopic = RandomGeneratorService.generateRandomTopic()
         const newGame = {
             id: "",
             room: RoomService.getRoomById(roomId),
-            topic: "Anime", // generar random
-            secretWord: "Death note", // generar random
+            topic: randomTopic,
+            secretWord: RandomGeneratorService.generateRandomWordFromTopic(randomTopic).toString(),
             activePlayers: [...room.players.map((player : Player) => {return {...player, isReady: false}})],
-            impostor: room.players[0].name, // generar random
+            impostor: RandomGeneratorService.generateRandomPlayer(room.players),
             rounds: [],
             impostorWonTheGame: false
         }
