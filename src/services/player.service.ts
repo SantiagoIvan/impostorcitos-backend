@@ -4,7 +4,8 @@ export const PlayerService = {
     createPlayer: (name: string): Player => {
         return {
             name,
-            isReady: false
+            isReady: false,
+            isAlive: true
         }
     }
 }

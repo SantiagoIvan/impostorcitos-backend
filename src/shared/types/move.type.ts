@@ -1,4 +1,5 @@
 export interface Move {
-    player : string,
+    roundId: number
+    player : string
     word: string
 }

@@ -5,7 +5,6 @@ import { Server } from "socket.io";
 import { GENERAL_CHAT_CHANNEL } from "../shared/constants";
 import { registerGameEvents } from "./game.sockets";
 
-let counter = 0
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: Room[]) => void }) => {
   socket.emit(RoomEvents.LIST, RoomService.getRooms())
 }

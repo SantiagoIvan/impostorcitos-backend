@@ -11,4 +11,5 @@ export interface Game {
     impostor: string
     rounds: Round[]
     impostorWonTheGame: boolean
+    nextTurnIndexPlayer: number
 }

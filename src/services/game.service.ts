@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { GameRepository } from "../repository";
 import { Game, Player } from "../shared";
 import { RandomGeneratorService } from "./randomGenerator.service";
@@ -15,7 +16,8 @@ export const GameService = {
             activePlayers: [...room.players.map((player : Player) => {return {...player, isReady: false}})],
             impostor: RandomGeneratorService.generateRandomPlayer(room.players),
             rounds: [],
-            impostorWonTheGame: false
+            impostorWonTheGame: false,
+            nextTurnIndexPlayer: randomInt(0, room.players.length)
         }
         GameRepository.createGame(newGame)
         return newGame

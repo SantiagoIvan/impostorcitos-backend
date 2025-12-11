@@ -8,5 +8,6 @@ export const defaultGame = {
     activePlayers: [],
     impostor: "",
     rounds: [],
-    impostorWonTheGame: false
+    impostorWonTheGame: false,
+    nextTurnIndexPlayer: 0
 }
