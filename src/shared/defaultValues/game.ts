@@ -7,7 +7,8 @@ export const defaultGame = {
     secretWord: "",
     activePlayers: [],
     impostor: "",
-    rounds: [],
+    moves: [],
+    votes: [],
     impostorWonTheGame: false,
     nextTurnIndexPlayer: 0
 }

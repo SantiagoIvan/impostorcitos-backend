@@ -15,7 +15,8 @@ export const GameService = {
             secretWord: RandomGeneratorService.generateRandomWordFromTopic(randomTopic).toString(),
             activePlayers: [...room.players.map((player : Player) => {return {...player, isReady: false}})],
             impostor: RandomGeneratorService.generateRandomPlayer(room.players),
-            rounds: [],
+            moves: [],
+            votes: [],
             impostorWonTheGame: false,
             nextTurnIndexPlayer: randomInt(0, room.players.length)
         }
