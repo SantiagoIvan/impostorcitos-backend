@@ -1,10 +1,10 @@
 import { Socket } from "socket.io"
-import { GameService, RoomService } from "../services"
+import { GameService, RoomService, SocketUsersService } from "../services"
 import { RoomEvents, Room, CreateRoomDto, JoinRoomDto, Player, GameEvents } from "../shared"
 import { Server } from "socket.io";
 import { GENERAL_CHAT_CHANNEL } from "../shared/constants";
 import { registerGameEvents } from "./game.sockets";
-import { gameSocketUserMap } from "../db";
+import { roomSocketUserMap } from "../db";
 
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: Room[]) => void }) => {
   socket.emit(RoomEvents.LIST, RoomService.getRooms())
@@ -13,14 +13,21 @@ export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: Room[]) =>
 export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     
   socket.on(RoomEvents.CREATE, (roomDto : CreateRoomDto) => {
+    // Creamos el room y el mapa para almacenar los sockets de cada jugador
+    
     const newRoom = RoomService.addRoom(roomDto)
+    SocketUsersService.createNewMap(newRoom.id)
     io.emit(RoomEvents.CREATED, newRoom)
   })
   
   socket.on(RoomEvents.JOIN, (incomingPlayer : JoinRoomDto) => {
-    // Cuando un jugador se une a un Room, se une a determinado canal, 
-    // donde se emitiran los eventos de mensajes del canal (nuevos ingresos/egresos, mensajes y relacionados al juego)
-    // Si el usuario ya estaba en la sala, lo ignoro
+    /*
+    - Si el usuario ya estaba en la sala, lo ignoro
+    - Cuando un jugador se une a un Room, se une a determinado canal, donde se emitiran los eventos de mensajes del canal (nuevos ingresos/egresos, mensajes y relacionados al juego)
+    - Se crea el registro en roomSocketUserMap, que es un log interno de todos los sockets de los clientes conectados en cada room, util
+    para el juego.
+    - Se notifica al resto de los usuarios de la aplicacion que alguien entro, asi actualizan su lista
+    */
     if(RoomService.isPlayerInRoom(incomingPlayer)) return
     
     // Cuando un jugador se une a un room, se une al canal especifico y se va del general
@@ -28,6 +35,10 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     console.log(`New player ${incomingPlayer.username} trying to join ${incomingPlayer.roomId}`)
     const updatedRoom = RoomService.addPlayerToRoom(incomingPlayer)
     socket.join(incomingPlayer.roomId)
+
+    const res = SocketUsersService.addPlayerSocketToMap(incomingPlayer.username, updatedRoom.id, socket)
+    console.log(res)
+
     io.emit(RoomEvents.JOINED, updatedRoom) 
     
   })
@@ -40,6 +51,9 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     socket.join(GENERAL_CHAT_CHANNEL)
     const updatedRoom = RoomService.removePlayerfromRoom(outcomingPlayer)
     socket.leave(outcomingPlayer.roomId)
+
+    // Lo elimino del mapa de sockets del room antes de avisarle a todos
+    console.log(SocketUsersService.removePlayerSocketFromMap(outcomingPlayer.username, updatedRoom.id))
     io.emit(RoomEvents.USER_LEFT, updatedRoom)
   })
 
@@ -72,6 +86,10 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     }
     if(game.activePlayers.every((player: Player) => player.isReady)){
       // TODO falta suscribir cada socket a los eventos del juego con un registerGameEvents antes de emitir el All_Ready
+      const socketPlayers = SocketUsersService.getSocketPlayersByRoom(game.room.id)
+      socketPlayers.forEach((sock: Socket, user: string) => {
+        registerGameEvents(sock, io, game)
+      })
       io.to(game.room.id).emit(GameEvents.ALL_READY)
     }
   })

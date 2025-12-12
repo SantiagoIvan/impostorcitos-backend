@@ -15,9 +15,9 @@ export const defaultRooms : Room[]= [
         name: "Room Alpha",
         privacy: RoomType.PUBLIC,
         createdAt: new Date().toISOString(),
-        discussionTime: 60,
-        voteTime: 10,
-        moveTime: 10,
+        discussionTime: 20,
+        voteTime: 15,
+        moveTime: 15,
         maxPlayers: 6,
         players: []
     },
@@ -28,9 +28,9 @@ export const defaultRooms : Room[]= [
         privacy: RoomType.PRIVATE,
         password: "123",
         createdAt: new Date().toISOString(),
-        discussionTime: 60,
-        voteTime: 10,
-        moveTime: 10,
+        discussionTime: 20,
+        voteTime: 15,
+        moveTime: 15,
         maxPlayers: 4,
         players: []
     }

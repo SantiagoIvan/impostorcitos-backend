@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
-import { GameEvents, JoinRoomDto } from "../shared";
+import { Game, GameEvents } from "../shared";
 
-export const registerGameEvents = (socket: Socket, io: Server) => {
+export const registerGameEvents = (socket: Socket, io: Server, game: Game) => {
     
 }

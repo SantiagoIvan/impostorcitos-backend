@@ -1,4 +1,6 @@
+import { Socket } from "socket.io";
 import { defaultRoom } from "./room";
+import { PhaseGame } from "../types";
 
 export const defaultGame = {
     id: "",
@@ -10,5 +12,8 @@ export const defaultGame = {
     moves: [],
     votes: [],
     impostorWonTheGame: false,
-    nextTurnIndexPlayer: 0
+    nextTurnIndexPlayer: 0,
+    currentPhase: PhaseGame.PLAY
 }
+
+export const defaultUserSocketMap = new Map<string, Socket>()
