@@ -1,4 +1,4 @@
-import { gamesInProgress, nextSeqGame } from "../db/init";
+import { gamesInProgress, nextSeqGame } from "../db";
 import { Game } from "../shared";
 import { defaultGame } from "../shared/defaultValues/game";
 

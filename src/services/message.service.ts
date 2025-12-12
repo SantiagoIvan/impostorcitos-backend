@@ -1,4 +1,3 @@
-import { nextSeqMessage } from "../db/init"
 import { MessageRepository } from "../repository"
 import { CreateMessageDto, Message } from "../shared"
 

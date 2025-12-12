@@ -4,6 +4,7 @@ import { RoomEvents, Room, CreateRoomDto, JoinRoomDto, Player, GameEvents } from
 import { Server } from "socket.io";
 import { GENERAL_CHAT_CHANNEL } from "../shared/constants";
 import { registerGameEvents } from "./game.sockets";
+import { gameSocketUserMap } from "../db";
 
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: Room[]) => void }) => {
   socket.emit(RoomEvents.LIST, RoomService.getRooms())
@@ -55,6 +56,9 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     // Crear nuevo Game object y eliminar room de la lista
     const newGame = GameService.createGame(roomId)
     const rooms = RoomService.removeRoom(roomId)
+    
+    // Agrego a cada jugador del game a la lista de sockets del game
+    
     io.emit(RoomEvents.LIST, rooms)
     io.to(roomId).emit(RoomEvents.REDIRECT_TO_GAME, newGame)
   })

@@ -1,4 +1,4 @@
-import { defaultMessages, nextSeqMessage } from "../db/init"
+import { defaultMessages, nextSeqMessage } from "../db"
 import { CreateMessageDto, Message } from "../shared"
 
 export const MessageRepository = {
