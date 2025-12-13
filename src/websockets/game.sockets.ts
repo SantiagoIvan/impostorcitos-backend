@@ -58,14 +58,19 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
 
         // Verifico si todos jugaron
         if(GameService.hasEverybodyPlayed(game)){
-            // Primero verifico condicion de victoria
+            // Primero cuento votos
+            GameService.getMostVotedPlayers(game)
+            
+            
+            
             // Actualizo la fase del juego y les seteo a todos de vuelta el flag hasPlayed = false
             await sleep(3000);// aca puedo emitir resultados de la expulsion
-            GameService.setGamePhase(game, GamePhase.PLAY)
+            GameService.setGamePhase(game, GamePhase.ROUND_RESULT)
             GameService.setCurrentRound(game, game.currentRound + 1)
             GameService.setNextTurnIndexPlayer(game, 0)
             GameService.resetHasPlayed(game)
-            io.to(game.room.id).emit(GameEvents.WORD_INPUT_TURN, game)
+            io.to(game.room.id).emit(GameEvents.EXECUTED_PLAYER, game)
         }
     })
+
 }

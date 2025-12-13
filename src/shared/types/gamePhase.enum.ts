@@ -1,5 +1,6 @@
 export enum GamePhase {
     PLAY,
     VOTE,
-    DISCUSSION
+    DISCUSSION,
+    ROUND_RESULT
 }

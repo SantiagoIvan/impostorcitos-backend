@@ -70,5 +70,15 @@ export const GameService = {
     },
     addVote: (game: Game, vote:Vote) => {
         game.votes.push(vote)
+    },
+    getMostVotedPlayers: (game: Game) => {
+        const voteMap = new Map<string, number>()
+        game.votes.filter((vote: Vote) => vote.roundId === game.currentRound).forEach((vote: Vote) => {
+            const votesGivenToPlayer = voteMap.get(vote.votedPlayer) || 0
+            voteMap.set(vote.votedPlayer, votesGivenToPlayer + 1)
+        })
+        console.log("Conteo: ", voteMap)
+        // Una vez realizado el conteo, tengo cual es el numero maximo de votos y quienes tienen ese numero
+        
     }
 }
