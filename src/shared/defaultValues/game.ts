@@ -13,6 +13,7 @@ export const defaultGame = {
     votes: [],
     impostorWonTheGame: false,
     nextTurnIndexPlayer: 0,
+    orderToPlay: [],
     currentPhase: PhaseGame.PLAY,
     currentRound: 0
 }

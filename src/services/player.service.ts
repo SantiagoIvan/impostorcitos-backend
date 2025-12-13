@@ -9,5 +9,12 @@ export const PlayerService = {
             skipPhase: false,
             hasPlayed: false
         }
+    },
+    setPlayerHasPlayed: (players: Player[], username: string) : Player | undefined => {
+        const player = players.find((player: Player) => player.name === username)
+        if(player){
+            player.hasPlayed = true
+        }
+        return player
     }
 }

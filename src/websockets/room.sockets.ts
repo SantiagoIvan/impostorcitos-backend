@@ -34,8 +34,7 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     const updatedRoom = RoomService.addPlayerToRoom(incomingPlayer)
     socket.join(incomingPlayer.roomId)
 
-    const res = SocketUsersService.addPlayerSocketToMap(incomingPlayer.username, updatedRoom.id, socket)
-    console.log(res)
+    SocketUsersService.addPlayerSocketToMap(incomingPlayer.username, updatedRoom.id, socket)
 
     io.emit(RoomEvents.JOINED, updatedRoom) 
     
@@ -86,7 +85,7 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
       // Suscribir cada socket a los eventos del juego con un registerGameEvents antes de emitir el All_Ready
       const socketPlayers = SocketUsersService.getSocketPlayersByRoom(game.room.id)
       socketPlayers.forEach((sock: Socket, user: string) => {
-        registerGameEvents(sock, io, game)
+        registerGameEvents(sock, io)
       })
       io.to(game.room.id).emit(GameEvents.ALL_READY, game)
     }
