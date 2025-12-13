@@ -19,17 +19,18 @@ export const GameService = {
             votes: [],
             impostorWonTheGame: false,
             nextTurnIndexPlayer: randomInt(0, room.players.length),
-            currentPhase: PhaseGame.PLAY
+            currentPhase: PhaseGame.PLAY,
+            currentRound: 0
         }
         GameRepository.createGame(newGame)
-        console.log("Game created ", newGame)
         return newGame
     },
     getGameById: (id: string): Game => {
         return GameRepository.getGameById(id)
     },
     computeNextTurn: (game: Game): Game => {
-        // Itero sobre la lista de Active Players y me fijo cual es el siguiente en la lista que sigue vivo
+        // Itero sobre la lista de Active Players y me fijo cual es el siguiente en la lista que sigue vivo que no jugo
+
         return game
     }
     

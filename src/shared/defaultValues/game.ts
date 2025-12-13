@@ -13,7 +13,8 @@ export const defaultGame = {
     votes: [],
     impostorWonTheGame: false,
     nextTurnIndexPlayer: 0,
-    currentPhase: PhaseGame.PLAY
+    currentPhase: PhaseGame.PLAY,
+    currentRound: 0
 }
 
 export const defaultUserSocketMap = new Map<string, Socket>()

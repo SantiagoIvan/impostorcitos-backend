@@ -15,5 +15,6 @@ export interface Game {
     votes: Vote[]
     impostorWonTheGame: boolean
     nextTurnIndexPlayer: number
-    currentPhase: PhaseGame
+    currentPhase: PhaseGame,
+    currentRound: number
 }
