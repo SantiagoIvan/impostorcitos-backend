@@ -1,3 +1,4 @@
 export * from "./createRoomDto"
 export * from "./createMessageDto"
 export * from "./joinRoomDto"
+export * from "./submitWordDto"
