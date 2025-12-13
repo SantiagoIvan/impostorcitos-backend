@@ -1,10 +1,8 @@
 import { Socket } from "socket.io"
 import { GameService, RoomService, SocketUsersService } from "../services"
-import { RoomEvents, Room, CreateRoomDto, JoinRoomDto, Player, GameEvents } from "../shared"
+import { RoomEvents, Room, CreateRoomDto, JoinRoomDto, Player, GameEvents, GENERAL_CHAT_CHANNEL } from "../shared"
 import { Server } from "socket.io";
-import { GENERAL_CHAT_CHANNEL } from "../shared/constants";
 import { registerGameEvents } from "./game.sockets";
-import { roomSocketUserMap } from "../db";
 
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: Room[]) => void }) => {
   socket.emit(RoomEvents.LIST, RoomService.getRooms())
@@ -85,12 +83,12 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
       found.isReady = true
     }
     if(game.activePlayers.every((player: Player) => player.isReady)){
-      // TODO falta suscribir cada socket a los eventos del juego con un registerGameEvents antes de emitir el All_Ready
+      // Suscribir cada socket a los eventos del juego con un registerGameEvents antes de emitir el All_Ready
       const socketPlayers = SocketUsersService.getSocketPlayersByRoom(game.room.id)
       socketPlayers.forEach((sock: Socket, user: string) => {
         registerGameEvents(sock, io, game)
       })
-      io.to(game.room.id).emit(GameEvents.ALL_READY)
+      io.to(game.room.id).emit(GameEvents.ALL_READY, game)
     }
   })
 }
