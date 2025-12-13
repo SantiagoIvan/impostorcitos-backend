@@ -17,7 +17,7 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
 
         console.log("Registrando word para ", submitWordDto)
         const move = MoveService.createMove(submitWordDto, game.currentRound)
-        game.moves.push(move)
+        GameService.addMove(game, move)
         PlayerService.setPlayerHasPlayed(game.activePlayers, submitWordDto.username)
         
         // Calculo el siguiente turno
@@ -26,8 +26,8 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         // Verifico si todos jugaron para saber si activo la siguiente fase
         if(GameService.hasEverybodyPlayed(game)){
             // Actualizo la fase del juego y les seteo a todos de vuelta el flag hasPlayed = false
-            game.currentPhase = GamePhase.DISCUSSION
-            game.nextTurnIndexPlayer = 0
+            GameService.setGamePhase(game, GamePhase.DISCUSSION) 
+            GameService.setNextTurnIndexPlayer(game, 0)
             GameService.resetHasPlayed(game)
         }
         io.to(game.room.id).emit(GameEvents.WORD_SUBMITTED, game)
@@ -39,8 +39,8 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         PlayerService.setPlayerHasPlayed(game.activePlayers, username)
 
         if(GameService.hasEverybodyPlayed(game)){
+            GameService.setGamePhase(game, GamePhase.VOTE)
             GameService.resetHasPlayed(game)
-            game.currentPhase = GamePhase.VOTE
             io.to(game.room.id).emit(GameEvents.VOTE_TURN, game)
         }
     })
@@ -51,18 +51,19 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
 
         console.log("Registrando voto para ", submitVoteDto)
         const vote = VoteService.createVote(submitVoteDto, game.currentRound)
-        game.votes.push(vote)
+        GameService.addVote(game, vote)
         PlayerService.setPlayerHasPlayed(game.activePlayers, submitVoteDto.username)
         
         io.to(game.room.id).emit(GameEvents.VOTE_SUBMITTED, game)
+
         // Verifico si todos jugaron
         if(GameService.hasEverybodyPlayed(game)){
             // Primero verifico condicion de victoria
             // Actualizo la fase del juego y les seteo a todos de vuelta el flag hasPlayed = false
             await sleep(3000);// aca puedo emitir resultados de la expulsion
-            game.currentPhase = GamePhase.PLAY
-            game.currentRound += 1
-            game.nextTurnIndexPlayer = 0
+            GameService.setGamePhase(game, GamePhase.PLAY)
+            GameService.setCurrentRound(game, game.currentRound + 1)
+            GameService.setNextTurnIndexPlayer(game, 0)
             GameService.resetHasPlayed(game)
             io.to(game.room.id).emit(GameEvents.WORD_INPUT_TURN, game)
         }

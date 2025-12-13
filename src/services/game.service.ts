@@ -1,5 +1,5 @@
 import { GameRepository } from "../repository";
-import { Game, Move, GamePhase, Player } from "../shared";
+import { Game, Move, GamePhase, Player, Vote } from "../shared";
 import { RandomGeneratorService } from "./randomGenerator.service";
 import { RoomService } from "./room.service";
 import { shuffle } from "../shared";
@@ -50,5 +50,25 @@ export const GameService = {
     resetHasPlayed: (game: Game): void => {
         game.activePlayers.forEach((p: Player) => {p.hasPlayed = false})
     },
-
+    setGamePhase: (game: Game, gamePhased: GamePhase) => {
+        game.currentPhase = gamePhased
+    },
+    setNextTurnIndexPlayer: (game: Game, turn: number) =>{
+        game.nextTurnIndexPlayer = turn
+    },
+    setCurrentRound: (game: Game, round: number) =>{
+        game.currentRound = round
+    },
+    setImpostor: (game: Game, impostor: string) =>{
+        game.impostor = impostor
+    },
+    setImpostorWonTheGame: (game: Game, flag: boolean) =>{
+        game.impostorWonTheGame = flag
+    },
+    addMove: (game: Game, move:Move) => {
+        game.moves.push(move)
+    },
+    addVote: (game: Game, vote:Vote) => {
+        game.votes.push(vote)
+    }
 }
