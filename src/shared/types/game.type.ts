@@ -1,5 +1,5 @@
 import { Move } from "./move.type";
-import { PhaseGame } from "./phaseGame.enum";
+import { GamePhase } from "./gamePhase.enum";
 import { Player } from "./player.type";
 import { Room } from "./room.type";
 import { Vote } from "./vote.type";
@@ -16,6 +16,6 @@ export interface Game {
     impostorWonTheGame: boolean
     nextTurnIndexPlayer: number
     orderToPlay: string[]
-    currentPhase: PhaseGame
+    currentPhase: GamePhase
     currentRound: number
 }

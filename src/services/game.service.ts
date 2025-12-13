@@ -1,5 +1,5 @@
 import { GameRepository } from "../repository";
-import { Game, Move, PhaseGame, Player } from "../shared";
+import { Game, Move, GamePhase, Player } from "../shared";
 import { RandomGeneratorService } from "./randomGenerator.service";
 import { RoomService } from "./room.service";
 import { shuffle } from "../shared";
@@ -23,7 +23,7 @@ export const GameService = {
             impostorWonTheGame: false,
             nextTurnIndexPlayer: 0,
             orderToPlay: randomOrder,
-            currentPhase: PhaseGame.PLAY,
+            currentPhase: GamePhase.PLAY,
             currentRound: 1
         }
         GameRepository.createGame(newGame)
@@ -49,6 +49,6 @@ export const GameService = {
     hasPlayerPlayed: (game: Game, username: string): boolean => game.activePlayers.find((player: Player) => player.name === username)?.hasPlayed || false,
     resetHasPlayed: (game: Game): void => {
         game.activePlayers.forEach((p: Player) => {p.hasPlayed = false})
-    }
-    
+    },
+
 }

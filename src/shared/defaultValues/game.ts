@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
 import { defaultRoom } from "./room";
-import { PhaseGame } from "../types";
+import { GamePhase } from "../types";
 
 export const defaultGame = {
     id: "",
@@ -14,7 +14,7 @@ export const defaultGame = {
     impostorWonTheGame: false,
     nextTurnIndexPlayer: 0,
     orderToPlay: [],
-    currentPhase: PhaseGame.PLAY,
+    currentPhase: GamePhase.PLAY,
     currentRound: 0
 }
 
