@@ -3,6 +3,7 @@ import { Game, Move, GamePhase, Player, Vote } from "../shared";
 import { RandomGeneratorService } from "./randomGenerator.service";
 import { RoomService } from "./room.service";
 import { shuffle } from "../shared";
+import { getPlayersWithMostVotes } from "../shared/utils";
 
 
 
@@ -71,14 +72,22 @@ export const GameService = {
     addVote: (game: Game, vote:Vote) => {
         game.votes.push(vote)
     },
-    getMostVotedPlayers: (game: Game) => {
+    getMostVotedPlayers: (game: Game): string[] => {
         const voteMap = new Map<string, number>()
         game.votes.filter((vote: Vote) => vote.roundId === game.currentRound).forEach((vote: Vote) => {
+            if(vote.votedPlayer === "") return
             const votesGivenToPlayer = voteMap.get(vote.votedPlayer) || 0
             voteMap.set(vote.votedPlayer, votesGivenToPlayer + 1)
         })
         console.log("Conteo: ", voteMap)
         // Una vez realizado el conteo, tengo cual es el numero maximo de votos y quienes tienen ese numero
-        
-    }
+        const { playerIds } = getPlayersWithMostVotes(voteMap);
+        return playerIds
+    },
+    hasCrewWon: (game: Game, lossers: string[]) => lossers.length === 1 && lossers[0] === game.impostor,
+    hasImpostorWon: (game: Game, lossers: string[]) => 
+        game.activePlayers.filter((player: Player) => player.isAlive).length === 2 
+    && lossers.length === 1 
+    && lossers[0] !== game.impostor,
+    isPlayerDead: (game: Game, playerName: string) => game.activePlayers.some((player: Player) => player.name === playerName && player.isAlive),
 }

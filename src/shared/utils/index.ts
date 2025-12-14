@@ -8,3 +8,24 @@ export function shuffle<T>(array: T[]): T[] {
 
   return result;
 }
+
+export function getPlayersWithMostVotes(
+  votes: Map<string, number>
+): { playerIds: string[]; votes: number } {
+  let maxVotes = 0;
+  let lossers: string[] = [];
+
+  for (const [playerId, count] of votes.entries()) {
+    if (count > maxVotes) {
+      maxVotes = count;
+      lossers = [playerId];
+    } else if (count === maxVotes) {
+      lossers.push(playerId);
+    }
+  }
+
+  return {
+    playerIds: lossers,
+    votes: maxVotes,
+  };
+}

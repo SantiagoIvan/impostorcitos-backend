@@ -1,11 +1,8 @@
 import { Server, Socket } from "socket.io";
-import { Game, GameEvents, SubmitWordDto, GamePhase, SubmitVoteDto } from "../shared";
-import { GameService, MoveService, PlayerService, VoteService } from "../services";
+import { GameEvents, SubmitWordDto, GamePhase, SubmitVoteDto } from "../shared";
+import { GameService, MoveService, PlayerService, RoundResultService, VoteService } from "../services";
 
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 export const registerGameEvents = (socket: Socket, io: Server) => {
     socket.on(GameEvents.SUBMIT_WORD, (submitWordDto: SubmitWordDto) => {
@@ -13,7 +10,11 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         // Cuando alguien hace una jugada, registro el Move en el array de Moves con el current round
         // Le pongo el true el HasPlayed
         const game = GameService.getGameById(submitWordDto.gameId)
-        if(!(game.currentPhase === GamePhase.PLAY) || GameService.hasPlayerPlayed(game, submitWordDto.username)) return
+        if(
+            !(game.currentPhase === GamePhase.PLAY) || 
+            GameService.hasPlayerPlayed(game, submitWordDto.username) || 
+            !GameService.isPlayerDead(game, submitWordDto.username)
+        ) return
 
         console.log("Registrando word para ", submitWordDto)
         const move = MoveService.createMove(submitWordDto, game.currentRound)
@@ -35,19 +36,28 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
 
     socket.on(GameEvents.DISCUSSION_TURN_END, ({username,gameId}:{username: string, gameId: string}) => {
         const game = GameService.getGameById(gameId)
-        if(!(game.currentPhase === GamePhase.DISCUSSION) || GameService.hasPlayerPlayed(game, username)) return
-        PlayerService.setPlayerHasPlayed(game.activePlayers, username)
+        if(
+            !(game.currentPhase === GamePhase.DISCUSSION) || 
+            GameService.hasPlayerPlayed(game, username) || 
+            !GameService.isPlayerDead(game, username)
+        ) return
 
-        if(GameService.hasEverybodyPlayed(game)){
-            GameService.setGamePhase(game, GamePhase.VOTE)
-            GameService.resetHasPlayed(game)
-            io.to(game.room.id).emit(GameEvents.VOTE_TURN, game)
-        }
+        PlayerService.setPlayerHasPlayed(game.activePlayers, username)
+        if(!GameService.hasEverybodyPlayed(game)) return 
+        
+        GameService.setGamePhase(game, GamePhase.VOTE)
+        GameService.resetHasPlayed(game)
+        io.to(game.room.id).emit(GameEvents.VOTE_TURN, game)
+        
     })
 
     socket.on(GameEvents.SUBMIT_VOTE, async (submitVoteDto: SubmitVoteDto) => {
         const game = GameService.getGameById(submitVoteDto.gameId)
-        if(!(game.currentPhase === GamePhase.VOTE) || GameService.hasPlayerPlayed(game, submitVoteDto.username)) return
+        if(
+            !(game.currentPhase === GamePhase.VOTE) || 
+            GameService.hasPlayerPlayed(game, submitVoteDto.username) || 
+            !GameService.isPlayerDead(game, submitVoteDto.username)
+        ) return
 
         console.log("Registrando voto para ", submitVoteDto)
         const vote = VoteService.createVote(submitVoteDto, game.currentRound)
@@ -57,20 +67,38 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         io.to(game.room.id).emit(GameEvents.VOTE_SUBMITTED, game)
 
         // Verifico si todos jugaron
-        if(GameService.hasEverybodyPlayed(game)){
-            // Primero cuento votos
-            GameService.getMostVotedPlayers(game)
-            
-            
-            
-            // Actualizo la fase del juego y les seteo a todos de vuelta el flag hasPlayed = false
-            await sleep(3000);// aca puedo emitir resultados de la expulsion
-            GameService.setGamePhase(game, GamePhase.ROUND_RESULT)
-            GameService.setCurrentRound(game, game.currentRound + 1)
-            GameService.setNextTurnIndexPlayer(game, 0)
-            GameService.resetHasPlayed(game)
-            io.to(game.room.id).emit(GameEvents.EXECUTED_PLAYER, game)
+        if(!GameService.hasEverybodyPlayed(game)) return
+        
+        // Primero cuento votos
+        const lossers = GameService.getMostVotedPlayers(game)
+        
+        GameService.setGamePhase(game, GamePhase.ROUND_RESULT)
+        GameService.setNextTurnIndexPlayer(game, 0)
+        GameService.resetHasPlayed(game)
+        
+        if(lossers.length === 1){
+            PlayerService.killPlayer(game.activePlayers, lossers[0])
         }
+
+        io.to(game.room.id).emit(GameEvents.ROUND_RESULT, {game, roundResult: RoundResultService.createRoundResultDto(game, lossers)})
+        if(GameService.hasCrewWon(game, lossers) || GameService.hasImpostorWon(game, lossers)){
+            console.log("Deberia limpiar memoria")
+        }
+    })
+
+    socket.on(GameEvents.NEXT_ROUND, ({gameId, username} : {gameId: string, username: string}) => {
+        const game = GameService.getGameById(gameId)
+        if(!(game.currentPhase === GamePhase.ROUND_RESULT) || GameService.hasPlayerPlayed(game, username)) return
+        PlayerService.setPlayerHasPlayed(game.activePlayers, username)
+        
+
+        if(!GameService.hasEverybodyPlayed(game)) return
+        
+        GameService.setGamePhase(game, GamePhase.PLAY)
+        GameService.resetHasPlayed(game)
+        GameService.setCurrentRound(game, game.currentRound + 1)
+        io.to(game.room.id).emit(GameEvents.WORD_INPUT_TURN, game)
+        
     })
 
 }
