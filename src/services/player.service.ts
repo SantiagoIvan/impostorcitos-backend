@@ -16,12 +16,5 @@ export const PlayerService = {
             player.hasPlayed = true
         }
         return player
-    },
-    killPlayer: (players: Player[], username: string) : Player | undefined=> {
-        const player = players.find((player: Player) => player.name === username)
-        if(player){
-            player.isAlive = false
-        }
-        return player
     }
 }

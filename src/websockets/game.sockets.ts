@@ -76,7 +76,7 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         GameService.resetHasPlayed(game)
         
         if(lossers.length === 1){
-            PlayerService.killPlayer(game.activePlayers, lossers[0])
+            GameService.killPlayer(game, lossers[0])
         }
 
         io.to(game.room.id).emit(GameEvents.ROUND_RESULT, {game, roundResult: RoundResultService.createRoundResultDto(game, lossers)})

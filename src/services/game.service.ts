@@ -2,6 +2,7 @@ import { GameRepository } from "../repository";
 import { Game, Move, GamePhase, Player, Vote } from "../shared";
 import { RandomGeneratorService } from "./randomGenerator.service";
 import { RoomService } from "./room.service";
+import { SocketUsersService } from "./socketUsersService";
 import { shuffle } from "../shared";
 import { getPlayersWithMostVotes } from "../shared/utils";
 
@@ -88,4 +89,15 @@ export const GameService = {
             && lossers.length === 1 
             && lossers[0] !== game.impostor,
     isPlayerDead: (game: Game, playerName: string) => game.activePlayers.some((player: Player) => player.name === playerName && player.isAlive),
+    killPlayer: (game: Game, playerName: string) => {
+        const player = game.activePlayers.find((player: Player) => player.name === playerName)
+        if(player){
+            player.isAlive = false
+        }
+        const socketPlayer = SocketUsersService.getSocketPlayer(game.room.id, playerName)
+        if(socketPlayer){
+            console.log("Agregado al canal de muertos")
+            socketPlayer?.join(`${game.room.id}:dead`)
+        }
+    }
 }

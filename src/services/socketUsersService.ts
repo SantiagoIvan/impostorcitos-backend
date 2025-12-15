@@ -15,6 +15,7 @@ export const SocketUsersService = {
     removePlayerSocketFromMap: (username: string, roomId: string): Map<string, Socket> => {
         roomSocketUserMap.get(roomId)?.delete(username)
         return roomSocketUserMap.get(roomId) || defaultUserSocketMap
-    }
+    },
+    getSocketPlayer: (roomId: string, playerName: string): Socket | undefined=> roomSocketUserMap.get(roomId)?.get(playerName) || defaultUserSocketMap.get(playerName)
 
 }
