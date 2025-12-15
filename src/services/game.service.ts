@@ -28,7 +28,6 @@ export const GameService = {
             currentRound: 1
         }
         GameRepository.createGame(newGame)
-        console.log("Game order is ", newGame.orderToPlay)
         return newGame
     },
     getGameById: (id: string): Game => {
@@ -79,7 +78,6 @@ export const GameService = {
             const votesGivenToPlayer = voteMap.get(vote.votedPlayer) || 0
             voteMap.set(vote.votedPlayer, votesGivenToPlayer + 1)
         })
-        console.log("Conteo: ", voteMap)
         // Una vez realizado el conteo, tengo cual es el numero maximo de votos y quienes tienen ese numero
         const { playerIds } = getPlayersWithMostVotes(voteMap);
         return playerIds
@@ -87,7 +85,7 @@ export const GameService = {
     hasCrewWon: (game: Game, lossers: string[]) => lossers.length === 1 && lossers[0] === game.impostor,
     hasImpostorWon: (game: Game, lossers: string[]) => 
         game.activePlayers.filter((player: Player) => player.isAlive).length === 2 
-    && lossers.length === 1 
-    && lossers[0] !== game.impostor,
+            && lossers.length === 1 
+            && lossers[0] !== game.impostor,
     isPlayerDead: (game: Game, playerName: string) => game.activePlayers.some((player: Player) => player.name === playerName && player.isAlive),
 }

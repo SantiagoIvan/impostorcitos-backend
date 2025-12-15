@@ -3,7 +3,6 @@ import { GameEvents, SubmitWordDto, GamePhase, SubmitVoteDto } from "../shared";
 import { GameService, MoveService, PlayerService, RoundResultService, VoteService } from "../services";
 
 
-
 export const registerGameEvents = (socket: Socket, io: Server) => {
     socket.on(GameEvents.SUBMIT_WORD, (submitWordDto: SubmitWordDto) => {
         // Primero verifico que el jugador no haya jugado antes. Si jugo, baaai
@@ -100,5 +99,4 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         io.to(game.room.id).emit(GameEvents.WORD_INPUT_TURN, game)
         
     })
-
 }
