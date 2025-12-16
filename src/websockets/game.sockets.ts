@@ -10,8 +10,7 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         const game = GameService.getGameById(submitWordDto.gameId)
         if(
             !(game.currentPhase === GamePhase.PLAY) || 
-            GameService.hasPlayerPlayed(game, submitWordDto.username) || 
-            !GameService.isPlayerDead(game, submitWordDto.username)
+            !PlayerService.canPlay(game, submitWordDto.username)
         ) return
 
         const move = MoveService.createMove(submitWordDto, game.currentRound)
@@ -26,7 +25,7 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
             GameService.startTurn(game)
         }else{
             // Calculo el siguiente turno
-            GameService.computeNextTurn(game)
+            GameService.computeNextTurn(game, game.nextTurnIndexPlayer+1)
             GameService.startTurn(game)
         }
         io.to(game.room.id).emit(GameEvents.WORD_SUBMITTED, game)
@@ -36,8 +35,7 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         const game = GameService.getGameById(gameId)
         if(
             !(game.currentPhase === GamePhase.DISCUSSION) || 
-            GameService.hasPlayerPlayed(game, username) || 
-            !GameService.isPlayerDead(game, username)
+            !PlayerService.canPlay(game, username)
         ) return
 
         PlayerService.setPlayerHasPlayed(game.activePlayers, username)
@@ -54,16 +52,13 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         const game = GameService.getGameById(submitVoteDto.gameId)
         if(
             !(game.currentPhase === GamePhase.VOTE) || 
-            GameService.hasPlayerPlayed(game, submitVoteDto.username) || 
-            !GameService.isPlayerDead(game, submitVoteDto.username)
+            !PlayerService.canPlay(game, submitVoteDto.username)
         ) return
 
         const vote = VoteService.createVote(submitVoteDto, game.currentRound)
         GameService.addVote(game, vote)
         PlayerService.setPlayerHasPlayed(game.activePlayers, submitVoteDto.username)
         
-        //GameService.computeNextTurn(game)
-        //GameService.startTurn(game)
 
         io.to(game.room.id).emit(GameEvents.VOTE_SUBMITTED, game)
 
@@ -96,7 +91,8 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         
         GameService.setGamePhase(game, GamePhase.PLAY)
         GameService.resetTurns(game)
-        GameService.startTurn(game)
+        GameService.computeNextTurn(game, 0)
+        GameService.startTurn(game) // configuro el objeto Turn
         GameService.setCurrentRound(game, game.currentRound + 1)
         io.to(game.room.id).emit(GameEvents.START_ROUND, game)
         

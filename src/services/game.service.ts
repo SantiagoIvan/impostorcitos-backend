@@ -36,17 +36,17 @@ export const GameService = {
     getGameById: (id: string): Game => {
         return GameRepository.getGameById(id)
     },
-    computeNextTurn: (game: Game): void => {
+    computeNextTurn: (game: Game, baseIndex: number): void => {
         // Itero sobre la lista de Active Players y me fijo cual es el siguiente en la lista que sigue vivo que no jugo
-        let currentIndex = game.nextTurnIndexPlayer + 1
-        while(currentIndex < game.orderToPlay.length){
-            const player = game.activePlayers.find((player: Player) => player.name === game.orderToPlay[currentIndex])
+        while(baseIndex < game.orderToPlay.length){
+            const player = game.activePlayers.find((player: Player) => player.name === game.orderToPlay[baseIndex])
             if(player && player.isAlive && !player.hasPlayed) {
-                game.nextTurnIndexPlayer = currentIndex
+                game.nextTurnIndexPlayer = baseIndex
                 return
             }
-            currentIndex += 1
+            baseIndex += 1
         }
+        console.log("No hay turno disponible")
     },
     hasEverybodyPlayed: (game: Game): boolean => game.activePlayers.filter((player : Player) => player.isAlive).every((player: Player) => player.hasPlayed),
     hasPlayerPlayed: (game: Game, username: string): boolean => game.activePlayers.find((player: Player) => player.name === username)?.hasPlayed || false,

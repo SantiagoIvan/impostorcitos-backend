@@ -18,5 +18,7 @@ export const PlayerService = {
         }
         return player
     },
-    
+    canPlay: (game: Game, playerName: string) : boolean => {
+        return game.activePlayers.find((player: Player) => player.name === playerName && !player.hasPlayed && player.isAlive) ? true: false
+    }
 }
