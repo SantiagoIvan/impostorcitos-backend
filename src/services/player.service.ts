@@ -18,5 +18,5 @@ export const PlayerService = {
         }
         return player
     },
-    canPlay: (game: Game, player: string) : boolean => GameService.hasPlayerPlayed(game, player) || !GameService.isPlayerDead(game, player)
+    
 }
