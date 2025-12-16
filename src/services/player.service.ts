@@ -1,4 +1,5 @@
-import { Player } from "../shared"
+import { Player, Game } from "../shared"
+import { GameService } from "./game.service"
 
 export const PlayerService = {
     createPlayer: (name: string): Player => {
@@ -16,5 +17,6 @@ export const PlayerService = {
             player.hasPlayed = true
         }
         return player
-    }
+    },
+    canPlay: (game: Game, player: string) : boolean => GameService.hasPlayerPlayed(game, player) || !GameService.isPlayerDead(game, player)
 }

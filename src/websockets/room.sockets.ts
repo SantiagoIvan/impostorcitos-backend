@@ -30,7 +30,6 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     
     // Cuando un jugador se une a un room, se une al canal especifico y se va del general
     socket.leave(GENERAL_CHAT_CHANNEL)
-    console.log(`New player ${incomingPlayer.username} trying to join ${incomingPlayer.roomId}`)
     const updatedRoom = RoomService.addPlayerToRoom(incomingPlayer)
     socket.join(incomingPlayer.roomId)
 
@@ -44,7 +43,6 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     if(!RoomService.isPlayerInRoom(outcomingPlayer)) return
     
     // Cuando un jugador se va de un room, se sale del canal del room y entra al chat general
-    console.log(`New player ${outcomingPlayer.username} is trying to LEAVE from ${outcomingPlayer.roomId}`)
     socket.join(GENERAL_CHAT_CHANNEL)
     const updatedRoom = RoomService.removePlayerfromRoom(outcomingPlayer)
     socket.leave(outcomingPlayer.roomId)
@@ -58,7 +56,6 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     if(!RoomService.isPlayerInRoom(userReady)) return
     
     // Jugador activa el boton Ready y le avisa al resto de los jugadores
-    console.log(`Player ${userReady.username} is ready for room ${userReady.roomId}`)
     const updatedRoom = RoomService.togglePlayerReadyInRoom(userReady)
     io.to(userReady.roomId).emit(RoomEvents.USER_READY, updatedRoom)
   })

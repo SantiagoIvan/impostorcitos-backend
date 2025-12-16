@@ -13,6 +13,7 @@ export const GameService = {
         const room = RoomService.getRoomById(roomId)
         const randomTopic = RandomGeneratorService.generateRandomTopic()
         const randomOrder = shuffle([...room.players.map((player: Player) => player.name)])
+        const turn = {player: randomOrder[0], duration: room.moveTime, startedAt: Date.now()}
         const newGame = {
             id: "", // lo setea el repository usando un seq, como si lo hiciera la DB
             room: RoomService.getRoomById(roomId),
@@ -23,6 +24,7 @@ export const GameService = {
             moves: [],
             votes: [],
             impostorWonTheGame: false,
+            currentTurn: turn,
             nextTurnIndexPlayer: 0,
             orderToPlay: randomOrder,
             currentPhase: GamePhase.PLAY,
@@ -48,8 +50,9 @@ export const GameService = {
     },
     hasEverybodyPlayed: (game: Game): boolean => game.activePlayers.filter((player : Player) => player.isAlive).every((player: Player) => player.hasPlayed),
     hasPlayerPlayed: (game: Game, username: string): boolean => game.activePlayers.find((player: Player) => player.name === username)?.hasPlayed || false,
-    resetHasPlayed: (game: Game): void => {
+    resetTurns: (game: Game): void => {
         game.activePlayers.forEach((p: Player) => {p.hasPlayed = false})
+        game.nextTurnIndexPlayer = 0
     },
     setGamePhase: (game: Game, gamePhased: GamePhase) => {
         game.currentPhase = gamePhased
@@ -98,6 +101,13 @@ export const GameService = {
         if(socketPlayer){
             console.log("Agregado al canal de muertos")
             socketPlayer?.join(`${game.room.id}:dead`)
+        }
+    },
+    startTurn: (game: Game) => {
+        game.currentTurn = {
+            player: game.orderToPlay[game.nextTurnIndexPlayer],
+            duration: game.currentPhase === GamePhase.PLAY? game.room.moveTime : game.currentPhase === GamePhase.DISCUSSION? game.room.discussionTime : game.room.voteTime,
+            startedAt: Date.now()
         }
     }
 }
