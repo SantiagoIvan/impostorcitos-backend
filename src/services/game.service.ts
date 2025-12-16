@@ -109,5 +109,8 @@ export const GameService = {
             duration: game.currentPhase === GamePhase.PLAY? game.room.moveTime * 1000: game.currentPhase === GamePhase.DISCUSSION? game.room.discussionTime * 1000: game.room.voteTime * 1000,
             startedAt: Date.now()
         }
+    },
+    removeGame: (game: Game) => {
+        GameRepository.removeGame(game.id)
     }
 }

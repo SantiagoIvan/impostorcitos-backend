@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { GameEvents, SubmitWordDto, GamePhase, SubmitVoteDto } from "../shared";
-import { GameService, MoveService, PlayerService, RoundResultService, VoteService } from "../services";
+import { GameService, MoveService, PlayerService, RoomService, RoundResultService, VoteService } from "../services";
+import { defaultMessages, defaultRooms, gamesInProgress, roomSocketUserMap } from "../db";
 
 export const registerGameEvents = (socket: Socket, io: Server) => {
     socket.on(GameEvents.SUBMIT_WORD, (submitWordDto: SubmitWordDto) => {
@@ -77,7 +78,14 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
 
         io.to(game.room.id).emit(GameEvents.ROUND_RESULT, {game, roundResult: RoundResultService.createRoundResultDto(game, lossers)})
         if(GameService.hasCrewWon(game, lossers) || GameService.hasImpostorWon(game, lossers)){
-            console.log("Deberia limpiar memoria")
+            console.log("[GAME_SOCKET] Limpiando roomUserSocketMap, mensajes del room, room y game")
+            RoomService.removeRoom(game.room)
+            GameService.removeGame(game)
+            console.log("[GAME_SOCKET] Listo, se muestra a continuacion el estado de la ponele que BD")
+            console.log(roomSocketUserMap)
+            console.log(defaultRooms)
+            console.log(gamesInProgress)
+            console.log(defaultMessages) // Me falta agregar un roomId a los mensajes asi puedo eliminarlos
         }
     })
 

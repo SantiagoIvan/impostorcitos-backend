@@ -16,6 +16,9 @@ export const SocketUsersService = {
         roomSocketUserMap.get(roomId)?.delete(username)
         return roomSocketUserMap.get(roomId) || defaultUserSocketMap
     },
-    getSocketPlayer: (roomId: string, playerName: string): Socket | undefined=> roomSocketUserMap.get(roomId)?.get(playerName) || defaultUserSocketMap.get(playerName)
+    getSocketPlayer: (roomId: string, playerName: string): Socket | undefined=> roomSocketUserMap.get(roomId)?.get(playerName) || defaultUserSocketMap.get(playerName),
+    removeEntryMap: (roomId: string) => {
+        roomSocketUserMap.delete(roomId)
+    }
 
 }

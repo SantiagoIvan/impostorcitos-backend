@@ -32,7 +32,7 @@ export const RoomService = {
         return targetRoom
     },
     getRoomById: (id: string): Room => RoomRepository.getRoomById(id),
-    removeRoom: (targetRoomId: string): Room[] => {
-        return RoomRepository.removeRoom(targetRoomId)
+    removeRoom: (room: Room): Room[] => {
+        return RoomRepository.removeRoom(room.id)
     }
 }
