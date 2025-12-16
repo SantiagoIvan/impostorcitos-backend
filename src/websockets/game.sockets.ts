@@ -4,9 +4,9 @@ import { GameService, MoveService, PlayerService, RoundResultService, VoteServic
 
 export const registerGameEvents = (socket: Socket, io: Server) => {
     socket.on(GameEvents.SUBMIT_WORD, (submitWordDto: SubmitWordDto) => {
-        // Primero verifico que el jugador no haya jugado antes. Si jugo, baaai
-        // Cuando alguien hace una jugada, registro el Move en el array de Moves con el current round
-        // Le pongo el true el HasPlayed
+        // Primero verifico que el jugador no haya jugado antes o que este muerto o que no sea la fase correcta. Si alguna se cumple, ignoro el mensaje
+        // Cuando alguien hace una jugada, registro el Move en el array de Moves con el currentRound correspondiente
+        // Le pongo el true el HasPlayed y genero el siguiente turno
         const game = GameService.getGameById(submitWordDto.gameId)
         if(
             !(game.currentPhase === GamePhase.PLAY) || 
@@ -14,14 +14,9 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
             !GameService.isPlayerDead(game, submitWordDto.username)
         ) return
 
-        console.log("Registrando move ", submitWordDto)
         const move = MoveService.createMove(submitWordDto, game.currentRound)
-        console.log("Move creado ", move)
         GameService.addMove(game, move)
         PlayerService.setPlayerHasPlayed(game.activePlayers, submitWordDto.username)
-        
-        // Calculo el siguiente turno
-        GameService.computeNextTurn(game)
         
         // Verifico si todos jugaron para saber si activo la siguiente fase
         if(GameService.hasEverybodyPlayed(game)){
@@ -30,8 +25,9 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
             GameService.resetTurns(game)
             GameService.startTurn(game)
         }else{
+            // Calculo el siguiente turno
+            GameService.computeNextTurn(game)
             GameService.startTurn(game)
-            console.log(`Siguiente turno: ${game.currentTurn.player} ${game.currentTurn.duration} ${game.currentTurn.startedAt}`)
         }
         io.to(game.room.id).emit(GameEvents.WORD_SUBMITTED, game)
     })
@@ -62,7 +58,6 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
             !GameService.isPlayerDead(game, submitVoteDto.username)
         ) return
 
-        console.log("Registrando voto para ", submitVoteDto)
         const vote = VoteService.createVote(submitVoteDto, game.currentRound)
         GameService.addVote(game, vote)
         PlayerService.setPlayerHasPlayed(game.activePlayers, submitVoteDto.username)
@@ -103,7 +98,7 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         GameService.resetTurns(game)
         GameService.startTurn(game)
         GameService.setCurrentRound(game, game.currentRound + 1)
-        io.to(game.room.id).emit(GameEvents.WORD_INPUT_TURN, game)
+        io.to(game.room.id).emit(GameEvents.START_ROUND, game)
         
     })
 }

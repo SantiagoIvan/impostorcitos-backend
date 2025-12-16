@@ -1,5 +1,5 @@
 import { GameRepository } from "../repository";
-import { Game, Move, GamePhase, Player, Vote } from "../shared";
+import { Game, Move, GamePhase, Player, Vote, defaultTurn } from "../shared";
 import { RandomGeneratorService } from "./randomGenerator.service";
 import { RoomService } from "./room.service";
 import { SocketUsersService } from "./socketUsersService";
@@ -13,7 +13,7 @@ export const GameService = {
         const room = RoomService.getRoomById(roomId)
         const randomTopic = RandomGeneratorService.generateRandomTopic()
         const randomOrder = shuffle([...room.players.map((player: Player) => player.name)])
-        const turn = {player: randomOrder[0], duration: room.moveTime, startedAt: Date.now()}
+        const turn = defaultTurn // acaaa
         const newGame = {
             id: "", // lo setea el repository usando un seq, como si lo hiciera la DB
             room: RoomService.getRoomById(roomId),
@@ -106,7 +106,7 @@ export const GameService = {
     startTurn: (game: Game) => {
         game.currentTurn = {
             player: game.orderToPlay[game.nextTurnIndexPlayer],
-            duration: game.currentPhase === GamePhase.PLAY? game.room.moveTime : game.currentPhase === GamePhase.DISCUSSION? game.room.discussionTime : game.room.voteTime,
+            duration: game.currentPhase === GamePhase.PLAY? game.room.moveTime * 1000: game.currentPhase === GamePhase.DISCUSSION? game.room.discussionTime * 1000: game.room.voteTime * 1000,
             startedAt: Date.now()
         }
     }

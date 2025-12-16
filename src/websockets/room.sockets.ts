@@ -84,7 +84,8 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
       socketPlayers.forEach((sock: Socket, user: string) => {
         registerGameEvents(sock, io)
       })
-      io.to(game.room.id).emit(GameEvents.ALL_READY, game)
+      GameService.startTurn(game)
+      io.to(game.room.id).emit(GameEvents.START_ROUND, game)
     }
   })
 }
