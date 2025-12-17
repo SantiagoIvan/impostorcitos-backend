@@ -32,7 +32,8 @@ export const RoomService = {
         return targetRoom
     },
     getRoomById: (id: string): Room => RoomRepository.getRoomById(id),
-    removeRoom: (room: Room): Room[] => {
-        return RoomRepository.removeRoom(room.id)
-    }
+    cleanUpRoom: (roomId: string): Room[] => {
+        console.log("[ROOM_SERVICE] Limpiando room de la lista de rooms")
+        return RoomRepository.removeRoom(roomId)
+    },
 }

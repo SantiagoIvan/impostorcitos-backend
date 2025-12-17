@@ -8,6 +8,10 @@ export function nextSeqMessage(){
     return seq_message.toString()
 }
 
-export const defaultMessages : Message[]= []
+export let defaultMessages : Message[]= []
+
+export function setMessages(messages: Message[]) {
+    defaultMessages = messages
+}
 
 

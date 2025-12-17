@@ -5,6 +5,8 @@ import { RoomService } from "./room.service";
 import { SocketUsersService } from "./socketUsersService";
 import { shuffle } from "../shared";
 import { getPlayersWithMostVotes } from "../shared/utils";
+import { Server } from "socket.io";
+import { MessageService } from "./message.service";
 
 
 
@@ -110,7 +112,15 @@ export const GameService = {
             startedAt: Date.now()
         }
     },
-    removeGame: (game: Game) => {
-        GameRepository.removeGame(game.id)
+    removeGame: (gameId: string) => {
+        GameRepository.removeGame(gameId)
+    },
+    cleanUpGame: (game: Game) => {
+        console.log("[GAME_SERVICE] Limpiando roomUserSocketMap, mensajes del room, room, game y listeners del game")
+        // faltan los listeners para cada socket
+        MessageService.cleanUpMessagesFromRoom(game.room.id)
+        SocketUsersService.removeEntryMap(game.room.id)
+        RoomService.cleanUpRoom(game.room.id)
+        GameService.removeGame(game.id)
     }
 }

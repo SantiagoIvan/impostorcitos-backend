@@ -5,5 +5,8 @@ export const MessageService = {
     addMessage: (msgDto: CreateMessageDto) : Message => {
         const newMsg = MessageRepository.addMessage(msgDto)
         return newMsg
+    },
+    cleanUpMessagesFromRoom: (roomId: string) => {
+        MessageRepository.deleteFromRoom(roomId)
     }
 }
