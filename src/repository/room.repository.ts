@@ -1,5 +1,5 @@
 import { defaultRooms, nextSeqRoom } from "../db";
-import { defaultRoom, Room, Player, CreateRoomDto} from "../shared";
+import { defaultRoom, Room, Player, CreateRoomDto} from "../lib";
 
 
 export const RoomRepository = {

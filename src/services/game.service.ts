@@ -1,11 +1,8 @@
 import { GameRepository } from "../repository";
-import { Game, Move, GamePhase, Player, Vote, defaultTurn } from "../shared";
+import { Game, Move, GamePhase, Player, Vote, defaultTurn, shuffle, getPlayersWithMostVotes } from "../lib";
 import { RandomGeneratorService } from "./randomGenerator.service";
 import { RoomService } from "./room.service";
 import { SocketUsersService } from "./socketUsersService";
-import { shuffle } from "../shared";
-import { getPlayersWithMostVotes } from "../shared/utils";
-import { Server } from "socket.io";
 import { MessageService } from "./message.service";
 
 

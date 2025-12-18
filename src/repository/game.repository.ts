@@ -1,6 +1,6 @@
 import { gamesInProgress, nextSeqGame } from "../db";
-import { Game } from "../shared";
-import { defaultGame } from "../shared/defaultValues/game";
+import { Game } from "../lib";
+import { defaultGame } from "../lib/defaultValues/game";
 
 export const GameRepository = {
     createGame: (game: Game): Game => {

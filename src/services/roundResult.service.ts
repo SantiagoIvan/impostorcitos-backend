@@ -1,4 +1,4 @@
-import { Game, RoundResult, Team } from "../shared"
+import { Game, RoundResult, Team } from "../lib"
 import { GameService } from "./game.service";
 
 export const RoundResultService = {

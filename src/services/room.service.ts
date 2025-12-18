@@ -1,5 +1,5 @@
 import { RoomRepository } from "../repository"
-import { CreateRoomDto, JoinRoomDto, Player, Room } from "../shared"
+import { CreateRoomDto, JoinRoomDto, Player, Room } from "../lib"
 import { PlayerService } from "./player.service"
 
 export const RoomService = {

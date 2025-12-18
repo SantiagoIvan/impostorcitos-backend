@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
-import { GameEvents, SubmitWordDto, GamePhase, SubmitVoteDto } from "../shared";
-import { GameService, MessageService, MoveService, PlayerService, RoomService, RoundResultService, SocketUsersService, VoteService } from "../services";
+import { GameEvents, SubmitWordDto, GamePhase, SubmitVoteDto } from "../lib";
+import { GameService, MoveService, PlayerService, RoomService, RoundResultService, VoteService } from "../services";
 import { defaultMessages, defaultRooms, gamesInProgress, roomSocketUserMap } from "../db";
 
 export const registerGameEvents = (socket: Socket, io: Server) => {

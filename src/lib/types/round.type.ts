@@ -1,4 +1,4 @@
-import {Move, Vote} from "../../shared";
+import {Move, Vote} from "..";
 
 export interface Round {
     id: number

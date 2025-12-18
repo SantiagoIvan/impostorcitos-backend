@@ -1,6 +1,6 @@
 import { Socket } from "socket.io"
 import { roomSocketUserMap } from "../db"
-import { defaultUserSocketMap } from "../shared"
+import { defaultUserSocketMap } from "../lib"
 
 export const SocketUsersService = {
     getSocketPlayersByRoom: (roomId: string): Map<string, Socket> => roomSocketUserMap.get(roomId) || defaultUserSocketMap,

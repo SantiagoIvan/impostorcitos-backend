@@ -1,4 +1,4 @@
-import { Player, Game } from "../shared"
+import { Player, Game } from "../lib"
 import { GameService } from "./game.service"
 
 export const PlayerService = {

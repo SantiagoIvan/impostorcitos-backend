@@ -1,4 +1,4 @@
-import { Room, RoomType } from "../shared"
+import { Room, RoomType } from "../lib"
 
 
 let seq_room = 2

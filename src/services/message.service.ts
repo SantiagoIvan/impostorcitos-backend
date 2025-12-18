@@ -1,5 +1,5 @@
 import { MessageRepository } from "../repository"
-import { CreateMessageDto, Message } from "../shared"
+import { CreateMessageDto, Message } from "../lib"
 
 export const MessageService = {
     addMessage: (msgDto: CreateMessageDto) : Message => {

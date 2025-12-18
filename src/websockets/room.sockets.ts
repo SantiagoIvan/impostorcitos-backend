@@ -1,8 +1,8 @@
-import { Socket } from "socket.io"
+import { Socket, Server } from "socket.io"
 import { GameService, RoomService, SocketUsersService } from "../services"
-import { RoomEvents, Room, CreateRoomDto, JoinRoomDto, Player, GameEvents, GENERAL_CHAT_CHANNEL } from "../shared"
-import { Server } from "socket.io";
+import { RoomEvents, Room, CreateRoomDto, JoinRoomDto, Player, GameEvents, GENERAL_CHAT_CHANNEL } from "../lib"
 import { registerGameEvents } from "./game.sockets";
+import { roomManager } from "../domain/room";
 
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: Room[]) => void }) => {
   socket.emit(RoomEvents.LIST, RoomService.getRooms())
@@ -13,8 +13,9 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   socket.on(RoomEvents.CREATE, (roomDto : CreateRoomDto) => {
     // Creamos el room y el mapa para almacenar los sockets de cada jugador
     
-    const newRoom = RoomService.addRoom(roomDto)
+    const newRoom = roomManager.createRoom(roomDto)
     SocketUsersService.createNewMap(newRoom.id)
+    
     io.emit(RoomEvents.CREATED, newRoom)
   })
   

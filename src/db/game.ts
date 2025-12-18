@@ -1,5 +1,5 @@
 import { Socket } from "socket.io"
-import { Game } from "../shared"
+import { Game } from "../lib"
 
 let seq_game = 0
 

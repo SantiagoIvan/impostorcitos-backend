@@ -1,5 +1,5 @@
 import { defaultMessages, nextSeqMessage, setMessages } from "../db"
-import { CreateMessageDto, Message } from "../shared"
+import { CreateMessageDto, Message } from "../lib"
 
 export const MessageRepository = {
     getMessages: () : Message[]=> defaultMessages,

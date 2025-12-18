@@ -1,4 +1,4 @@
-import { Message } from "../shared"
+import { Message } from "../lib"
 
 let seq_message = 0
 

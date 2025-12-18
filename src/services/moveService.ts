@@ -1,4 +1,4 @@
-import { Move, SubmitWordDto } from "../shared"
+import { Move, SubmitWordDto } from "../lib"
 
 export const MoveService = {
     createMove: (submitWordDto: SubmitWordDto, roundId: number) : Move => {

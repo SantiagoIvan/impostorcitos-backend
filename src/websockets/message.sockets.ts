@@ -1,8 +1,8 @@
 import { Socket } from "socket.io"
 import { GameService, MessageService } from "../services"
-import { MessageEvents, CreateMessageDto, Player } from "../shared"
+import { MessageEvents, CreateMessageDto, Player } from "../lib"
 import { Server } from "socket.io";
-import { GENERAL_CHAT_CHANNEL } from "../shared/constants";
+import { GENERAL_CHAT_CHANNEL } from "../lib/constants";
 
 export const registerMessageEvents = (socket: Socket, io: Server) => {
 

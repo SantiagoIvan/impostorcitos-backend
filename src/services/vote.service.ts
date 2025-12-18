@@ -1,4 +1,4 @@
-import { SubmitVoteDto, Vote } from "../shared";
+import { SubmitVoteDto, Vote } from "../lib";
 
 export const VoteService = {
     createVote: (submiteVoteDto: SubmitVoteDto, roundId: number): Vote => {
