@@ -1,13 +1,17 @@
 import { nextSeqRoom } from "../../db";
 import { CreateRoomDto } from "../../lib";
+import { ConsoleLogger, ILogger } from "../../logger";
 import { InMemoryRoomRepository } from "../../repository/room/InMemoryRoomRepository";
-import { RoomRepository } from "../../repository/room/RoomRepository";
+import { IRoomRepository } from "../../repository/room/IRoomRepository";
 import { Room } from "./Room";
 
 export class RoomManager {
     constructor(
-        private readonly roomRepository: RoomRepository
-    ){}
+        private readonly roomRepository: IRoomRepository,
+        private readonly logger: ILogger
+    ){
+        this.logger = logger.withContext(RoomManager.name);
+    }
 
     createRoom(roomDto: CreateRoomDto) : Room {
         const newRoom = new Room(
@@ -22,7 +26,7 @@ export class RoomManager {
             roomDto.maxPlayers,
         )
         this.roomRepository.save(newRoom)
-        console.log("[ROOM_MANAGER] Room creado: ", newRoom)
+        this.logger.info("Room creado: ", newRoom)
         return newRoom
     }
     getRoomById(id: string) : Room | undefined {
@@ -45,4 +49,7 @@ export class RoomManager {
     }
 }
 
-export const roomManager = new RoomManager(new InMemoryRoomRepository())
+export const roomManager = new RoomManager(
+    new InMemoryRoomRepository(), 
+    new ConsoleLogger()
+)

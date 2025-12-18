@@ -1,11 +1,11 @@
 import { Player } from "../../domain/player";
 import { Room } from "../../domain/room";
 import { InMemoryRepository } from "../InMemoryRepository";
-import { RoomRepository } from "./RoomRepository";
+import { IRoomRepository } from "./IRoomRepository";
 
 export class InMemoryRoomRepository
   extends InMemoryRepository<Room>
-  implements RoomRepository {
+  implements IRoomRepository {
 
   findPublicRooms(): Room[] {
     return this.getAll().filter(room => room.isPublic());
