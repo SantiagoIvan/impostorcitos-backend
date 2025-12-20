@@ -1,72 +1,90 @@
 import { Socket, Server } from "socket.io"
 import { GameService, RoomService, SocketUsersService } from "../services"
-import { RoomEvents, Room, CreateRoomDto, JoinRoomDto, Player, GameEvents, GENERAL_CHAT_CHANNEL } from "../lib"
+import { RoomEvents, CreateRoomDto, JoinRoomDto, GameEvents, GENERAL_CHAT_CHANNEL, RoomDto } from "../lib"
 import { registerGameEvents } from "./game.sockets";
-import { roomManager } from "../domain/room";
+import { Room, roomManager } from "../domain/room";
+import { Player } from "../domain/player";
+import { toRoomDTO } from "../mappers/room.mapper";
 
-export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: Room[]) => void }) => {
-  socket.emit(RoomEvents.LIST, RoomService.getRooms())
+export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: RoomDto[]) => void }) => {
+  const rooms = roomManager.getRooms().map((room: Room) => toRoomDTO(room))
+  socket.emit(RoomEvents.LIST, rooms)
 }
 
 export const registerAllRoomEvents = (socket: Socket, io: Server) => {
-    
+  /* 
+  *** RoomEvents.Create ***
+  - Creamos el room y el mapa para almacenar los sockets de cada jugador
+  */
   socket.on(RoomEvents.CREATE, (roomDto : CreateRoomDto) => {
-    // Creamos el room y el mapa para almacenar los sockets de cada jugador
     
     const newRoom = roomManager.createRoom(roomDto)
     SocketUsersService.createNewMap(newRoom.id)
     
-    io.emit(RoomEvents.CREATED, newRoom)
+    io.emit(RoomEvents.CREATED, toRoomDTO(newRoom))
   })
   
+
+
+  /* 
+  *** RoomEvents.Join ***
+  - Si el usuario ya estaba en la sala, no emito ningun evento.
+  - Cuando un jugador se une a un Room, se une a determinado canal, donde se emitiran los eventos de mensajes del canal (nuevos ingresos/egresos, mensajes y
+  eventos relacionados al juego)
+  - Se crea el registro en roomSocketUserMap, que es un mapa interno de todos los sockets de los clientes conectados en cada room, util
+  para el juego.
+  - Se notifica al resto de los usuarios de la aplicacion que alguien entro, asi actualizan su lista
+  - Cuando un jugador se une a un room, se une al canal especifico y se va del general
+  */
   socket.on(RoomEvents.JOIN, (incomingPlayer : JoinRoomDto) => {
-    /*
-    - Si el usuario ya estaba en la sala, lo ignoro
-    - Cuando un jugador se une a un Room, se une a determinado canal, donde se emitiran los eventos de mensajes del canal (nuevos ingresos/egresos, mensajes y relacionados al juego)
-    - Se crea el registro en roomSocketUserMap, que es un log interno de todos los sockets de los clientes conectados en cada room, util
-    para el juego.
-    - Se notifica al resto de los usuarios de la aplicacion que alguien entro, asi actualizan su lista
-    */
-    if(RoomService.isPlayerInRoom(incomingPlayer)) return
-    
-    // Cuando un jugador se une a un room, se une al canal especifico y se va del general
+    if(roomManager.isPlayerInRoom(incomingPlayer.username, incomingPlayer.roomId)) return
+    const player = new Player(incomingPlayer.username, socket)
+    const updatedRoom = roomManager.addPlayerToRoom(player, incomingPlayer.roomId)
+
     socket.leave(GENERAL_CHAT_CHANNEL)
-    const updatedRoom = RoomService.addPlayerToRoom(incomingPlayer)
     socket.join(incomingPlayer.roomId)
 
-    SocketUsersService.addPlayerSocketToMap(incomingPlayer.username, updatedRoom.id, socket)
+    SocketUsersService.addPlayerSocketToMap(incomingPlayer.username, updatedRoom?.id || "", socket)
 
-    io.emit(RoomEvents.JOINED, updatedRoom) 
-    
+    io.emit(RoomEvents.JOINED, toRoomDTO(updatedRoom)) 
   })
 
+  /* 
+  *** RoomEvents.Leave *** 
+  - Cuando un jugador se va de un room, se sale del canal del room y entra al chat general
+  - Lo elimino del mapa de sockets del room antes de avisarle a todos
+  */
   socket.on(RoomEvents.LEAVE, (outcomingPlayer: JoinRoomDto) => {
-    if(!RoomService.isPlayerInRoom(outcomingPlayer)) return
+    if(!roomManager.isPlayerInRoom(outcomingPlayer.username, outcomingPlayer.roomId)) return
     
-    // Cuando un jugador se va de un room, se sale del canal del room y entra al chat general
+    const updatedRoom = roomManager.removePlayerfromRoom(outcomingPlayer.username, outcomingPlayer.roomId)
     socket.join(GENERAL_CHAT_CHANNEL)
-    const updatedRoom = RoomService.removePlayerfromRoom(outcomingPlayer)
     socket.leave(outcomingPlayer.roomId)
 
-    // Lo elimino del mapa de sockets del room antes de avisarle a todos
-    console.log(SocketUsersService.removePlayerSocketFromMap(outcomingPlayer.username, updatedRoom.id))
-    io.emit(RoomEvents.USER_LEFT, updatedRoom)
+    SocketUsersService.removePlayerSocketFromMap(outcomingPlayer.username, updatedRoom.id)
+    io.emit(RoomEvents.USER_LEFT, toRoomDTO(updatedRoom))
   })
 
+
+  /*
+  *** RoomEvents.Ready ***
+  - Jugador activa el boton Ready y le avisa al resto de los jugadores
+  */
   socket.on(RoomEvents.READY, (userReady: JoinRoomDto) => {
-    if(!RoomService.isPlayerInRoom(userReady)) return
+    if(!roomManager.isPlayerInRoom(userReady.username, userReady.roomId)) return
     
-    // Jugador activa el boton Ready y le avisa al resto de los jugadores
-    const updatedRoom = RoomService.togglePlayerReadyInRoom(userReady)
-    io.to(userReady.roomId).emit(RoomEvents.USER_READY, updatedRoom)
+    const updatedRoom = roomManager.togglePlayerReadyInRoom(userReady.username, userReady.roomId)
+    io.to(userReady.roomId).emit(RoomEvents.USER_READY, toRoomDTO(updatedRoom))
   })
 
+  /*
+  *** RoomEvents.Start_Game ***
+  - Crear nuevo Game object y eliminar room de la lista
+  - Agrego a cada jugador del game a la lista de sockets del game
+  */
   socket.on(RoomEvents.START_GAME, (roomId : string) => {
-    // Crear nuevo Game object y eliminar room de la lista
     const newGame = GameService.createGame(roomId)
     const rooms = RoomService.cleanUpRoom(roomId)
-    
-    // Agrego a cada jugador del game a la lista de sockets del game
     
     io.emit(RoomEvents.LIST, rooms)
     io.to(roomId).emit(RoomEvents.REDIRECT_TO_GAME, newGame)

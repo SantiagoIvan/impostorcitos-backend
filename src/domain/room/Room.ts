@@ -2,6 +2,8 @@ import { RoomType } from "../../lib"
 import { Player } from "../player"
 
 export class Room{
+    public players = new Map<string, Player>();
+
     constructor(
         public readonly id: string,
         public readonly privacy: RoomType,
@@ -12,14 +14,13 @@ export class Room{
         public readonly voteTime: number,
         public readonly moveTime: number,
         public readonly maxPlayers: number,
-        public players: Player[] = [],
         private password?: string
     ){}
 
     isPublic(): boolean { return this.privacy === RoomType.PUBLIC}
 
     removePlayer(playerName: string) : Room {
-        this.players = this.players.filter((p: Player) => p.name !== playerName);
+        this.players.delete(playerName);
         return this
     }
     canJoin(passwordAttempt?: string): boolean {
@@ -34,17 +35,20 @@ export class Room{
         if (!this.canJoin(passwordAttempt)) {
             throw new Error("Invalid room password");
         }
-        this.players.push(player);
+        this.players.set(player.name, player);
     }
 
     isEmpty(): boolean {
-        return this.players.length === 0;
+        return this.players.size === 0;
     }
 
     getPlayerCount(): number {
-        return this.players.length;
+        return this.players.size;
     }
     isFull(): boolean {
-        return this.players.length === this.maxPlayers
+        return this.players.size === this.maxPlayers
+    }
+    hasPlayer(name: string) : boolean {
+        return this.players.has(name)
     }
 }

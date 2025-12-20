@@ -14,6 +14,6 @@ export class InMemoryRoomRepository
     return this.getById(id)?.isFull() || false
   }
   IsPlayerInRoom(name: string, roomId: string): boolean {
-    return this.getById(roomId)?.players.some((player: Player) => player.name === name) || false
+    return this.getById(roomId)?.hasPlayer(name) || false
   }
 }

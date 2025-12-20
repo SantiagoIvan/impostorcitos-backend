@@ -3,6 +3,7 @@ import { CreateRoomDto } from "../../lib";
 import { ConsoleLogger, ILogger } from "../../logger";
 import { InMemoryRoomRepository } from "../../repository/room/InMemoryRoomRepository";
 import { IRoomRepository } from "../../repository/room/IRoomRepository";
+import { Player } from "../player";
 import { Room } from "./Room";
 
 export class RoomManager {
@@ -26,7 +27,7 @@ export class RoomManager {
             roomDto.maxPlayers,
         )
         this.roomRepository.save(newRoom)
-        this.logger.info("Room creado: ", newRoom)
+        this.logger.info("[RoomManager] Room creado: ", newRoom)
         return newRoom
     }
     getRoomById(id: string) : Room | undefined {
@@ -46,6 +47,36 @@ export class RoomManager {
     }
     isPlayerInRoom(playerName: string, roomId: string) : boolean{
         return this.roomRepository.IsPlayerInRoom(playerName, roomId)
+    }
+    addPlayerToRoom(player: Player, roomId: string) : Room {
+        const room = this.roomRepository.getById(roomId)
+        if(room){
+            room.addPlayer(player)
+            this.roomRepository.save(room)
+            this.logger.info(`Se ha unido ${player.name} a la sala ${room.id}: Cantidad de jugadores: ${room.getPlayerCount()}`, room)
+            return room
+        }
+        throw new Error(`[RoomManager] Sala ${roomId} inexistente`) // mejorar
+    }
+    removePlayerfromRoom(playerName: string, roomId: string): Room {
+        const room = this.roomRepository.getById(roomId)
+        if(room){
+            room.players.delete(playerName)
+            this.logger.info(`${playerName} ha dejado la sala ${room.id}: Cantidad de jugadores: ${room.getPlayerCount()}`, room)
+            return room
+        }
+        throw new Error(`[RoomManager] Sala ${roomId} inexistente`) // mejorar
+    }
+    togglePlayerReadyInRoom(playerName: string, roomId: string): Room {
+        const room = this.roomRepository.getById(roomId)
+        if(!room) throw new Error(`[RoomManager] Sala ${roomId} inexistente`) // mejorar
+
+        const targetPlayer = room.players.get(playerName)
+        if(!targetPlayer) throw new Error(`[RoomManager] Jugador inexistente en la sala ${roomId}`) // mejorar
+        
+        targetPlayer.toogleIsReady()
+        this.logger.info(`${playerName} esta listo.`, room)
+        return room
     }
 }
 
