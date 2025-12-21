@@ -1,3 +1,2 @@
-export * from "./message.repository"
-export * from "./room.repository"
-export * from "./game.repository"
+export * from "./game"
+export * from "./room"

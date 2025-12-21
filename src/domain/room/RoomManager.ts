@@ -10,9 +10,7 @@ export class RoomManager {
     constructor(
         private readonly roomRepository: IRoomRepository,
         private readonly logger: ILogger
-    ){
-        this.logger = logger.withContext(RoomManager.name);
-    }
+    ){}
 
     createRoom(roomDto: CreateRoomDto) : Room {
         const newRoom = new Room(
@@ -25,9 +23,10 @@ export class RoomManager {
             roomDto.voteTime,
             roomDto.moveTime,
             roomDto.maxPlayers,
+            new Date()
         )
         this.roomRepository.save(newRoom)
-        this.logger.info("[RoomManager] Room creado: ", newRoom)
+        this.logger.info("Room has been created successfully: ", newRoom)
         return newRoom
     }
     getRoomById(id: string) : Room | undefined {
@@ -78,9 +77,14 @@ export class RoomManager {
         this.logger.info(`${playerName} esta listo.`, room)
         return room
     }
+    removeRoom(roomId: string) {
+        this.roomRepository.delete(roomId)
+        this.logger.info(`Se ha eliminado la sala`, roomId)
+    }
+    // Faltaria un metodo para revisar los que tienen mucha antiguedad y borrarlos. Eso podria hacerlo otra entidad
 }
 
 export const roomManager = new RoomManager(
     new InMemoryRoomRepository(), 
-    new ConsoleLogger()
+    new ConsoleLogger(RoomManager.name)
 )

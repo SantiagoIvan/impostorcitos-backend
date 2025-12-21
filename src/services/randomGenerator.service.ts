@@ -1,7 +1,8 @@
 import { randomInt } from "crypto"
 import { words } from "../db"
 import { topics } from "../db"
-import { Player, parseTopic } from "../lib"
+import { parseTopic } from "../lib"
+import { Player } from "../domain"
 
 export const RandomGeneratorService = {
     generateRandomTopic: () : string => {

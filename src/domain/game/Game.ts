@@ -1,40 +1,30 @@
-import { Player } from '../player/Player';
+import { Room } from '../';
+import { GamePhase, Move, Turn, Vote } from '../../lib';
 
 export class Game {
-  public readonly id: string;
-  public readonly createdAt: number;
+  public readonly createdAt: Date = new Date();
+  public readonly moves: Move[] = []
+  public readonly votes: Vote[] = []
+  private nextTurnIndexPlayer: number = 0
+  private impostorWonTheGame: boolean = false
+  private currentRound: number = 0
+  private currentPhase: GamePhase = GamePhase.PLAY
 
-  private players: Player[] = [];
-  private turnTimeout?: NodeJS.Timeout;
-  private lastActivityAt: number;
-
-  constructor(id: string) {
-    this.id = id;
-    this.createdAt = Date.now();
-    this.lastActivityAt = this.createdAt;
-  }
-
-  /* =====================
-     Players
-     ===================== */
-
-  addPlayer(player: Player) {
-    this.players.push(player);
-    this.touch();
-  }
-
-  removePlayer(playerId: string) {
-    this.players = this.players.filter(p => p.id !== playerId);
-    this.touch();
-  }
-
-  getPlayers() {
-    return this.players;
-  }
-
-  hasPlayers(): boolean {
-    return this.players.length > 0;
-  }
+  constructor(
+    public readonly id: string,
+    private lastActivityAt: Date,
+    private room: Room,
+    private topic: string,
+    private secretWord: string,
+    private impostor: string,
+    private orderToPlay: string[],
+    private currentTurn?: Turn,
+    private turnTimeout?: NodeJS.Timeout
+  ) {}
+  /*
+    
+  
+  */
 
   /* =====================
      Turn / timers
@@ -47,7 +37,7 @@ export class Game {
       onTimeout();
     }, durationMs);
 
-    this.touch();
+    this.updateLastActivity();
   }
 
   clearTurnTimeout() {
@@ -61,12 +51,13 @@ export class Game {
      Activity / lifecycle
      ===================== */
 
-  touch() {
-    this.lastActivityAt = Date.now();
+  updateLastActivity() {
+    this.lastActivityAt = new Date();
   }
 
   isIdle(maxIdleMs: number): boolean {
-    return Date.now() - this.lastActivityAt > maxIdleMs;
+    //return Date.now() - this.lastActivityAt > maxIdleMs;
+    return false
   }
 
   /* =====================
@@ -87,6 +78,5 @@ export class Game {
       player.socket.leave(this.id);
     }
 */
-    this.players = [];
   }
 }

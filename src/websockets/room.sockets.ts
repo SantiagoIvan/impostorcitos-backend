@@ -4,10 +4,11 @@ import { RoomEvents, CreateRoomDto, JoinRoomDto, GameEvents, GENERAL_CHAT_CHANNE
 import { registerGameEvents } from "./game.sockets";
 import { Room, roomManager } from "../domain/room";
 import { Player } from "../domain/player";
-import { toRoomDTO } from "../mappers/room.mapper";
+import { toRoomDTO, toRoomDTOArray } from "../mappers/room.mapper";
+import { gameManager } from "../domain";
 
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: RoomDto[]) => void }) => {
-  const rooms = roomManager.getRooms().map((room: Room) => toRoomDTO(room))
+  const rooms = toRoomDTOArray(roomManager.getRooms())
   socket.emit(RoomEvents.LIST, rooms)
 }
 
@@ -79,20 +80,21 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
 
   /*
   *** RoomEvents.Start_Game ***
-  - Crear nuevo Game object y eliminar room de la lista
+  - Crear nuevo Game object y eliminar room de la lista de rooms
   - Agrego a cada jugador del game a la lista de sockets del game
   */
   socket.on(RoomEvents.START_GAME, (roomId : string) => {
-    const newGame = GameService.createGame(roomId)
-    const rooms = RoomService.cleanUpRoom(roomId)
-    
+    const newGame = gameManager.createGame(roomId)
+    roomManager.removeRoom(roomId)
+   
+    const rooms = toRoomDTOArray(roomManager.getRooms())
     io.emit(RoomEvents.LIST, rooms)
     io.to(roomId).emit(RoomEvents.REDIRECT_TO_GAME, newGame)
   })
 
   socket.on(GameEvents.PLAYER_READY, ({username, gameId}) => {
     // Encontramos al jugador en activePlayers dentro del game y le ponemos el Ready
-    const game = GameService.getGameById(gameId)
+    /*const game = GameService.getGameById(gameId)
     const found = game.activePlayers.find((player: Player) => player.name === username)
     if(found){
       found.isReady = true
@@ -106,5 +108,6 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
       GameService.startTurn(game)
       io.to(game.room.id).emit(GameEvents.START_ROUND, game)
     }
+    */
   })
 }

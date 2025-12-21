@@ -17,3 +17,7 @@ export function toRoomDTO(room: Room): RoomDto {
     players: [...room.players.values()].map((player: Player) => toPlayerDTO(player))
   };
 }
+
+export function toRoomDTOArray(rooms: Room[]): RoomDto[] {
+  return rooms.map((room: Room) => toRoomDTO(room))
+}
