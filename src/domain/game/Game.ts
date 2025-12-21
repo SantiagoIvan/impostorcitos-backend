@@ -1,4 +1,4 @@
-import { Room } from '../';
+import { Player, Room } from '../';
 import { GamePhase, Move, Turn, Vote } from '../../lib';
 
 export class Game {
@@ -13,22 +13,14 @@ export class Game {
   constructor(
     public readonly id: string,
     private lastActivityAt: Date,
-    private room: Room,
-    private topic: string,
-    private secretWord: string,
-    private impostor: string,
-    private orderToPlay: string[],
-    private currentTurn?: Turn,
+    public readonly room: Room,
+    public readonly topic: string,
+    public readonly impostor: string,
+    public readonly secretWord: string,
+    public readonly orderToPlay: string[],
+    private currentTurn: Turn,
     private turnTimeout?: NodeJS.Timeout
   ) {}
-  /*
-    
-  
-  */
-
-  /* =====================
-     Turn / timers
-     ===================== */
 
   startTurn(durationMs: number, onTimeout: () => void) {
     this.clearTurnTimeout();
@@ -46,7 +38,29 @@ export class Game {
       this.turnTimeout = undefined;
     }
   }
+  allReady(){
+    return [...this.room.players.values()].every((player: Player) => player.ready)
+  }
 
+  get impostorWon() {
+    return this.impostorWonTheGame
+  }
+  get getCurrentTurn() {
+    return this.currentTurn
+  }
+
+  get getNextTurnIndexPlayer() {
+    return this.nextTurnIndexPlayer
+  }
+  get getCurrentPhase() {
+    return this.currentPhase
+  }
+  get getCurrentRound() {
+    return this.currentRound
+  }
+  set setTurn(newTurn : Turn){
+    this.currentTurn = newTurn
+  }
   /* =====================
      Activity / lifecycle
      ===================== */
@@ -55,7 +69,7 @@ export class Game {
     this.lastActivityAt = new Date();
   }
 
-  isIdle(maxIdleMs: number): boolean {
+  isIdle(maxIdleMs: number): boolean { // la idea es volar los que queden huerfanos
     //return Date.now() - this.lastActivityAt > maxIdleMs;
     return false
   }

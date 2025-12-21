@@ -29,3 +29,5 @@ export function getPlayersWithMostVotes(
     votes: maxVotes,
   };
 }
+
+export function transformSecondsToMS(duration : number) : number { return duration * 1000 }

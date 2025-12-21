@@ -1,11 +1,9 @@
 import { Socket, Server } from "socket.io"
-import { GameService, RoomService, SocketUsersService } from "../services"
-import { RoomEvents, CreateRoomDto, JoinRoomDto, GameEvents, GENERAL_CHAT_CHANNEL, RoomDto } from "../lib"
+import { getNewGameService, SocketUsersService } from "../services"
+import { RoomEvents, CreateRoomDto, JoinRoomDto, GameEvents, GENERAL_CHAT_CHANNEL, RoomDto, GameDto } from "../lib"
 import { registerGameEvents } from "./game.sockets";
-import { Room, roomManager } from "../domain/room";
-import { Player } from "../domain/player";
-import { toRoomDTO, toRoomDTOArray } from "../mappers/room.mapper";
-import { gameManager } from "../domain";
+import { toRoomDTO, toRoomDTOArray, toGameDTO } from "../mappers";
+import { Game, gameManager, roomManager, Player } from "../domain";
 
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: RoomDto[]) => void }) => {
   const rooms = toRoomDTOArray(roomManager.getRooms())
@@ -81,7 +79,8 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   /*
   *** RoomEvents.Start_Game ***
   - Crear nuevo Game object y eliminar room de la lista de rooms
-  - Agrego a cada jugador del game a la lista de sockets del game
+  - A todos los envio el status del game con la palabra secreta, menos al impostor. Al impostor le mando ese campo en null
+  - Emito evento Redirect to game para redirigirlos a la pantalla de la partida.
   */
   socket.on(RoomEvents.START_GAME, (roomId : string) => {
     const newGame = gameManager.createGame(roomId)
@@ -89,25 +88,25 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
    
     const rooms = toRoomDTOArray(roomManager.getRooms())
     io.emit(RoomEvents.LIST, rooms)
-    io.to(roomId).emit(RoomEvents.REDIRECT_TO_GAME, newGame)
+
+    getNewGameService().updateGameStateToClient(newGame, RoomEvents.REDIRECT_TO_GAME)
   })
 
+
+  /*
+  *** RoomEvents.Player_Ready ***
+  - Ponemos en Ready a cada jugador de la partida.
+  - Si estan todos listos, empezamos la ronda, y suscribo a cada socket de cada jugador a los eventos del game
+  - Emito evento para comenzar a jugar
+  */
   socket.on(GameEvents.PLAYER_READY, ({username, gameId}) => {
-    // Encontramos al jugador en activePlayers dentro del game y le ponemos el Ready
-    /*const game = GameService.getGameById(gameId)
-    const found = game.activePlayers.find((player: Player) => player.name === username)
-    if(found){
-      found.isReady = true
-    }
-    if(game.activePlayers.every((player: Player) => player.isReady)){
-      // Suscribir cada socket a los eventos del juego con un registerGameEvents antes de emitir el All_Ready
-      const socketPlayers = SocketUsersService.getSocketPlayersByRoom(game.room.id)
-      socketPlayers.forEach((sock: Socket, user: string) => {
-        registerGameEvents(sock, io)
-      })
-      GameService.startTurn(game)
-      io.to(game.room.id).emit(GameEvents.START_ROUND, game)
-    }
-    */
+    const game = gameManager.getGameById(gameId)
+    if(!game) throw new Error("Game not found")
+
+    const found = game.room.players.get(username)
+    if(!found) throw new Error("Player not found")
+    
+    found.setIsReady(true)
+    if(game.allReady()) getNewGameService().updateGameStateToClient(game, GameEvents.START_ROUND)
   })
 }

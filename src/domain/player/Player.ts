@@ -31,6 +31,9 @@ export class Player {
     this.skipPhase = false
     this.isReady = false
   }
+  setIsReady(flag: boolean) {
+    this.isReady = flag
+  }
   get alive(): boolean {
     return this.isAlive
   }

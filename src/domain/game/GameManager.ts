@@ -1,5 +1,5 @@
 import { nextSeqGame } from "../../db";
-import { GamePhase, shuffle } from "../../lib";
+import { defaultTurn, GamePhase, shuffle, transformSecondsToMS } from "../../lib";
 import { RandomGeneratorService } from "../../services";
 import { roomManager, Game, Player } from "../";
 import { ConsoleLogger, ILogger } from "../../logger";
@@ -30,9 +30,10 @@ class GameManager {
       new Date(),
       room,
       randomTopic,
-      randomWord,
       impostor,
-      randomOrder
+      randomWord,
+      randomOrder,
+      defaultTurn
     );
     this.gameRepository.save(game);
     this.logger.info(`Game has been created successfully: `, game)
@@ -53,6 +54,17 @@ class GameManager {
 
   getAll(): Game[] {
     return this.gameRepository.getAll();
+  }
+  startTurn(game: Game){
+    game.setTurn = {
+        player: game.orderToPlay[game.getNextTurnIndexPlayer],
+        duration: 
+            game.getCurrentPhase === GamePhase.PLAY? transformSecondsToMS(game.room.moveTime): 
+            game.getCurrentPhase === GamePhase.DISCUSSION? 
+              transformSecondsToMS(game.room.discussionTime): 
+              transformSecondsToMS(game.room.voteTime),
+        startedAt: Date.now()
+    }
   }
 }
 
