@@ -1,5 +1,5 @@
 import { z } from "zod";
-import {RoomType} from "../types/roomType.enum";
+import {RoomType} from "../../domain/room/roomType.enum";
 
 export const createRoomSchema = z.object({
     admin: z.string(),

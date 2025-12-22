@@ -1,4 +1,4 @@
-import { Message } from "../../lib";
+import { Message } from "../../domain";
 import { IMessageRepository } from "./IMessageRepository";
 import { GENERAL_CHAT_CHANNEL } from "../..";
 

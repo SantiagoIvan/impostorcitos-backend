@@ -1,6 +1,7 @@
 import { Player, Room } from '../';
-import { GamePhase, Move, Turn, Vote } from '../../lib';
+import { Turn, Vote } from '../../lib';
 import { transformSecondsToMS } from '../../lib';
+import { GamePhase, Move } from "../../domain"
 
 export class Game {
   public readonly createdAt: Date = new Date();

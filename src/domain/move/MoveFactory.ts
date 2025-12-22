@@ -1,6 +1,6 @@
-import { Move, SubmitWordDto } from "../lib"
+import { Move, SubmitWordDto } from "../../lib"
 
-export const MoveService = {
+export const MoveFactory = {
     createMove: (submitWordDto: SubmitWordDto, roundId: number) : Move => {
         return {
             roundId,

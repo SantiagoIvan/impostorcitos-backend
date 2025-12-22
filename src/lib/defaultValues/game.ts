@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
 import { defaultRoom } from "./room";
-import { GamePhase } from "../types";
+import { GamePhase } from "../../domain";
 
 export const defaultGame = {
     id: "",

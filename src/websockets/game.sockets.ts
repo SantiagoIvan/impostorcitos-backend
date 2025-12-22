@@ -1,7 +1,9 @@
 import { Server, Socket } from "socket.io";
-import { GameEvents, SubmitWordDto, GamePhase, SubmitVoteDto } from "../lib";
-import { GameService, MoveService, PlayerService, RoundResultService, VoteService } from "../services";
-import { gameManager } from "../domain";
+import { GameEvents, SubmitWordDto, SubmitVoteDto } from "../lib";
+import { GameService, RoundResultService, VoteService } from "../services";
+import { gameManager, GamePhase } from "../domain";
+import { ConsoleLogger } from "../logger";
+import { MoveFactory } from "../domain";
 
 /*
 *** GameEvents.Submit_Word
@@ -12,15 +14,20 @@ import { gameManager } from "../domain";
     Sino, calculamos el siguiente turno
 - Emitimos el evento WORD_SUBMITTED para que todos continuen
 */
+
+const logger = new ConsoleLogger("[GAME_SOCKETS]")
+
 export const registerGameEvents = (socket: Socket, io: Server) => {
     socket.on(GameEvents.SUBMIT_WORD, (submitWordDto: SubmitWordDto) => {
-        const game = GameService.getGameById(submitWordDto.gameId)
+        const game = gameManager.getGameById(submitWordDto.gameId)
+        const player = game?.getPlayerByName(submitWordDto.username)
+        if(!game || !player) {logger.error("Game o jugador inexistente");return} // Aca deberia lanzar excepcion
         if(
-            !(game.currentPhase === GamePhase.PLAY) || 
-            !PlayerService.canPlay(game, submitWordDto.username)
-        ) return
+            !(game.getCurrentPhase === GamePhase.PLAY) || 
+            !player.canPlay()
+        ) {logger.error("No es posible realizar una jugada");return}
 
-        const move = MoveService.createMove(submitWordDto, game.currentRound)
+        const move = MoveFactory.createMove(submitWordDto, game.getCurrentRound)
         GameService.addMove(game, move)
         PlayerService.setPlayerHasPlayed(game.activePlayers, submitWordDto.username)
         

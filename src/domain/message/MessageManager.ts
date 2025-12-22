@@ -1,4 +1,5 @@
-import { CreateMessageDto, Message } from "../../lib";
+import { CreateMessageDto } from "../../lib";
+import { Message } from "./message.type";
 import { ConsoleLogger, ILogger } from "../../logger";
 import { toMessage } from "../../mappers/message.mapper";
 import { IMessageRepository, InMemoryMessageRepository } from "../../repository";

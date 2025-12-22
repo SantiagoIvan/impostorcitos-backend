@@ -1,4 +1,4 @@
-import { RoomType } from "../index";
+import { RoomType } from "../../domain";
 
 export const defaultRoom = {
     id: "0",

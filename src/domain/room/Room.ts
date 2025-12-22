@@ -1,4 +1,4 @@
-import { RoomType } from "../../lib"
+import { RoomType } from "../../domain"
 import { Player } from "../player"
 
 export class Room{

@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { Move, GamePhase, Vote, getPlayersWithMostVotes, RoomEvents, GameEvents } from "../lib";
+import { Vote, getPlayersWithMostVotes, RoomEvents, GameEvents } from "../lib";
 import { toGameDTO } from "../mappers";
 import { Game, Player } from "../domain";
 import { ConsoleLogger, ILogger } from "../logger";
