@@ -1,9 +1,10 @@
 import { Socket, Server } from "socket.io"
-import { getNewGameService, SocketUsersService } from "../services"
-import { RoomEvents, CreateRoomDto, JoinRoomDto, GameEvents, GENERAL_CHAT_CHANNEL, RoomDto, GameDto } from "../lib"
+import { getNewGameService } from "../services"
+import { RoomEvents, CreateRoomDto, JoinRoomDto, GameEvents, RoomDto, GameDto } from "../lib"
 import { registerGameEvents } from "./game.sockets";
 import { toRoomDTO, toRoomDTOArray, toGameDTO } from "../mappers";
 import { Game, gameManager, roomManager, Player } from "../domain";
+import { GENERAL_CHAT_CHANNEL } from "..";
 
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: RoomDto[]) => void }) => {
   const rooms = toRoomDTOArray(roomManager.getRooms())
@@ -18,7 +19,6 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   socket.on(RoomEvents.CREATE, (roomDto : CreateRoomDto) => {
     
     const newRoom = roomManager.createRoom(roomDto)
-    SocketUsersService.createNewMap(newRoom.id)
     
     io.emit(RoomEvents.CREATED, toRoomDTO(newRoom))
   })
@@ -60,7 +60,6 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     socket.join(GENERAL_CHAT_CHANNEL)
     socket.leave(outcomingPlayer.roomId)
 
-    SocketUsersService.removePlayerSocketFromMap(outcomingPlayer.username, updatedRoom.id)
     io.emit(RoomEvents.USER_LEFT, toRoomDTO(updatedRoom))
   })
 
@@ -114,7 +113,7 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     if(game.allReady()) {
       game.resetRoundTurnState()
       game.startTurn()
-      game.getPlayers().forEach((p: Player) => {
+      game.getPlayersAsList().forEach((p: Player) => {
         registerGameEvents(p.socket, io)
       })
       getNewGameService().updateGameStateToClient(game, GameEvents.START_ROUND)

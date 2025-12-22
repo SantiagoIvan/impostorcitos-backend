@@ -1,6 +1,6 @@
 import {IRepository} from "./IRepository"
 
-export abstract class InMemoryRepository<T extends { id: string }>
+export abstract class InMemoryMapRepository<T extends { id: string }>
   implements IRepository<T> {
 
   protected items = new Map<string, T>();

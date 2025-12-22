@@ -32,6 +32,25 @@ export class Game {
 
     this.updateLastActivity();
   }*/
+  get impostorWon() {
+    return this.impostorWonTheGame
+  }
+  get getCurrentTurn() {
+    return this.currentTurn
+  }
+
+  get getNextTurnIndexPlayer() {
+    return this.nextTurnIndexPlayer
+  }
+  get getCurrentPhase() {
+    return this.currentPhase
+  }
+  get getCurrentRound() {
+    return this.currentRound
+  }
+  set setTurn(newTurn : Turn){
+    this.currentTurn = newTurn
+  }
 
   resetRoundTurnState(): void {
     this.room.players.forEach((p: Player) => {
@@ -59,32 +78,13 @@ export class Game {
         startedAt: Date.now()
     }
   }
-
-  get impostorWon() {
-    return this.impostorWonTheGame
-  }
-  get getCurrentTurn() {
-    return this.currentTurn
-  }
-
-  get getNextTurnIndexPlayer() {
-    return this.nextTurnIndexPlayer
-  }
-  get getCurrentPhase() {
-    return this.currentPhase
-  }
-  get getCurrentRound() {
-    return this.currentRound
-  }
-  set setTurn(newTurn : Turn){
-    this.currentTurn = newTurn
-  }
-  getPlayers(): Player[] {
+  getPlayersAsList(): Player[] {
     return [...this.room.players.values()]
   }
-  /* =====================
-     Activity / lifecycle
-     ===================== */
+
+  getPlayerByName(name: string): Player | undefined{
+    return this.room.getPlayer(name)
+  }
 
   updateLastActivity() {
     this.lastActivityAt = new Date();

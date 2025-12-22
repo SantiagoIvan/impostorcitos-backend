@@ -7,7 +7,8 @@ import { SocketEvents } from "./lib";
 import { emitRoomList, registerAllRoomEvents, registerMessageEvents } from "./websockets";
 
 const PORT = process.env.PORT || 4000
-
+export const GENERAL_CHAT_CHANNEL = process.env.GENERAL_CHAT_CHANNEL || "GENERAL"
+export const MIN_PLAYERS_QUANTITY = process.env.MIN_PLAYERS_QUANTITY || 3
 const app = express();
 
 app.use(cors({

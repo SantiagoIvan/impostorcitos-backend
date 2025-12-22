@@ -57,4 +57,7 @@ export class Room{
     hasPlayer(name: string) : boolean {
         return this.players.has(name)
     }
+    getPlayer(name: string): Player | undefined{
+        return this.players.get(name)
+    }
 }

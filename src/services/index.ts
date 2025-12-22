@@ -1,5 +1,3 @@
-export * from "./message.service"
-export * from "./player.service"
 export * from "./game.service"
 export * from "./randomGenerator.service"
 export * from "./socketUsersService"

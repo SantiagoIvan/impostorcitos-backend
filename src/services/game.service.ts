@@ -1,8 +1,5 @@
 import { Socket } from "socket.io";
 import { Move, GamePhase, Vote, getPlayersWithMostVotes, RoomEvents, GameEvents } from "../lib";
-import { RoomService } from "./room.service";
-import { SocketUsersService } from "./socketUsersService";
-import { MessageService } from "./message.service";
 import { toGameDTO } from "../mappers";
 import { Game, Player } from "../domain";
 import { ConsoleLogger, ILogger } from "../logger";
@@ -92,7 +89,7 @@ export class GameService {
         GameService.removeGame(game.id)
     }*/
     updateGameStateToClient(game: Game, event: RoomEvents | GameEvents) {
-        game.getPlayers().forEach((player: Player) => {
+        game.getPlayersAsList().forEach((player: Player) => {
             if(player.name === game.impostor){
                 const gameDto = toGameDTO(game, true)
                 this.logger.info("Game has been sent to impostor", gameDto)

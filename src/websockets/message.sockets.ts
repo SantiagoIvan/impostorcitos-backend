@@ -1,14 +1,16 @@
-import { Socket } from "socket.io"
-import { GameService, MessageService } from "../services"
-import { MessageEvents, CreateMessageDto, Player } from "../lib"
-import { Server } from "socket.io";
+import { Socket, Server} from "socket.io"
+import { MessageEvents, CreateMessageDto } from "../lib"
+import { gameManager, messageManager } from "../domain";
+import { GENERAL_CHAT_CHANNEL } from "..";
 
 export const registerMessageEvents = (socket: Socket, io: Server) => {
-
+  
   socket.join(GENERAL_CHAT_CHANNEL)
   
   socket.on(MessageEvents.CREATE, (msgDto : CreateMessageDto) => {
-    const newMessage = MessageService.addMessage(msgDto)
+    console.log("creando mensaje")
+    const newMessage = messageManager.addMessage(msgDto)
+    console.log("Mensaje creado y guardado: ", newMessage)
     if(!msgDto.roomId){ // Estas en lobby, chat general
       io.to(GENERAL_CHAT_CHANNEL).emit(MessageEvents.CREATED, newMessage)
       return
@@ -19,12 +21,13 @@ export const registerMessageEvents = (socket: Socket, io: Server) => {
     }
 
     // Si esta muerto, manda el mensaje al canal de los muertos asi solo los muertos te leen, pero estan en modo obs Asi que reciben todos los mensajes de todos
-    const game = GameService.getGameById(msgDto.gameId)
-    const player = game.activePlayers.find((player: Player) => player.name === msgDto.sender)
-    if(player && !player.isAlive){
+    const game = gameManager.getGameById(msgDto.gameId)
+    const player = game?.getPlayerByName(msgDto.sender)
+    if(player && !player.alive){
       io.to(`${msgDto.roomId}:dead`).emit(MessageEvents.CREATED, newMessage)
+      return
     }
-    if(player && player.isAlive){
+    if(player && player.alive){
       io.to(`${msgDto.roomId}`).emit(MessageEvents.CREATED, newMessage)
     }
     
