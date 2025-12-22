@@ -1,4 +1,4 @@
-import { Move, Room, Vote, Turn, GamePhase } from "../types";
+import { Move, Vote, Turn, GamePhase } from "../types";
 import { RoomDto } from "./roomDto";
 
 export interface GameDto {
@@ -7,6 +7,7 @@ export interface GameDto {
     topic: string
     moves: Move[]
     votes: Vote[]
+    impostor: boolean
     impostorWonTheGame: boolean
     currentTurn: Turn
     nextTurnIndexPlayer: number

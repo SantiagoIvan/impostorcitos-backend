@@ -55,17 +55,6 @@ class GameManager {
   getAll(): Game[] {
     return this.gameRepository.getAll();
   }
-  startTurn(game: Game){
-    game.setTurn = {
-        player: game.orderToPlay[game.getNextTurnIndexPlayer],
-        duration: 
-            game.getCurrentPhase === GamePhase.PLAY? transformSecondsToMS(game.room.moveTime): 
-            game.getCurrentPhase === GamePhase.DISCUSSION? 
-              transformSecondsToMS(game.room.discussionTime): 
-              transformSecondsToMS(game.room.voteTime),
-        startedAt: Date.now()
-    }
-  }
 }
 
 

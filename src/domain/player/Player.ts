@@ -11,29 +11,6 @@ export class Player {
     public readonly socket?: Socket,
   ){}
   
-  isPlayerAlive() : boolean {
-    return this.isAlive === true
-  }
-  canPlay() : boolean {
-    return this.isAlive && !this.hasPlayed && !this.skipPhase
-  }
-  markHasPlayed(){
-    this.hasPlayed = true
-  }
-  markSkipPhase(){
-    this.skipPhase = true
-  }
-  toogleIsReady(){
-    this.isReady = !this.isReady
-  }
-  resetPlayerTurn() {
-    this.hasPlayed = false
-    this.skipPhase = false
-    this.isReady = false
-  }
-  setIsReady(flag: boolean) {
-    this.isReady = flag
-  }
   get alive(): boolean {
     return this.isAlive
   }
@@ -48,5 +25,28 @@ export class Player {
 
   get played(): boolean {
     return this.hasPlayed
+  }
+  set setHasPlayed(flag : boolean){
+    this.hasPlayed = flag
+  }
+  isPlayerAlive() : boolean {
+    return this.isAlive === true
+  }
+  canPlay() : boolean {
+    return this.isAlive && !this.hasPlayed && !this.skipPhase
+  }
+  markSkipPhase(){
+    this.skipPhase = true
+  }
+  toogleIsReady(){
+    this.isReady = !this.isReady
+  }
+  resetPlayerTurn() {
+    this.hasPlayed = false
+    this.skipPhase = false
+    this.isReady = false
+  }
+  setIsReady(flag: boolean) {
+    this.isReady = flag
   }
 }

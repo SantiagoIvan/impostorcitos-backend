@@ -84,6 +84,7 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   */
   socket.on(RoomEvents.START_GAME, (roomId : string) => {
     const newGame = gameManager.createGame(roomId)
+    newGame.resetRoundTurnState()
     roomManager.removeRoom(roomId)
    
     const rooms = toRoomDTOArray(roomManager.getRooms())
@@ -101,12 +102,17 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   */
   socket.on(GameEvents.PLAYER_READY, ({username, gameId}) => {
     const game = gameManager.getGameById(gameId)
-    if(!game) throw new Error("Game not found")
+    if(!game) return
 
     const found = game.room.players.get(username)
-    if(!found) throw new Error("Player not found")
-    
+    if(!found || found.ready) return
+
+
     found.setIsReady(true)
-    if(game.allReady()) getNewGameService().updateGameStateToClient(game, GameEvents.START_ROUND)
+    if(game.allReady()) {
+      game.resetRoundTurnState()
+      game.startTurn()
+      getNewGameService().updateGameStateToClient(game, GameEvents.START_ROUND)
+    }
   })
 }

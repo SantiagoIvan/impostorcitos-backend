@@ -1,5 +1,6 @@
 import { Player, Room } from '../';
 import { GamePhase, Move, Turn, Vote } from '../../lib';
+import { transformSecondsToMS } from '../../lib';
 
 export class Game {
   public readonly createdAt: Date = new Date();
@@ -22,7 +23,7 @@ export class Game {
     private turnTimeout?: NodeJS.Timeout
   ) {}
 
-  startTurn(durationMs: number, onTimeout: () => void) {
+  /*startTurn(durationMs: number, onTimeout: () => void) {
     this.clearTurnTimeout();
 
     this.turnTimeout = setTimeout(() => {
@@ -30,8 +31,14 @@ export class Game {
     }, durationMs);
 
     this.updateLastActivity();
-  }
+  }*/
 
+  resetRoundTurnState(): void {
+    this.room.players.forEach((p: Player) => {
+      p.resetPlayerTurn()
+    })
+    this.nextTurnIndexPlayer = 0
+  }
   clearTurnTimeout() {
     if (this.turnTimeout) {
       clearTimeout(this.turnTimeout);
@@ -40,6 +47,17 @@ export class Game {
   }
   allReady(){
     return [...this.room.players.values()].every((player: Player) => player.ready)
+  }
+  startTurn(){
+    this.currentTurn = {
+        player: this.orderToPlay[this.nextTurnIndexPlayer],
+        duration: 
+            this.currentPhase === GamePhase.PLAY? transformSecondsToMS(this.room.moveTime): 
+            this.getCurrentPhase === GamePhase.DISCUSSION? 
+              transformSecondsToMS(this.room.discussionTime): 
+              transformSecondsToMS(this.room.voteTime),
+        startedAt: Date.now()
+    }
   }
 
   get impostorWon() {
