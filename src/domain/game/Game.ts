@@ -79,6 +79,9 @@ export class Game {
   set setTurn(newTurn : Turn){
     this.currentTurn = newTurn
   }
+  getPlayers(): Player[] {
+    return [...this.room.players.values()]
+  }
   /* =====================
      Activity / lifecycle
      ===================== */

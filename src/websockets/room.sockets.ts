@@ -43,10 +43,10 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     socket.leave(GENERAL_CHAT_CHANNEL)
     socket.join(incomingPlayer.roomId)
 
-    SocketUsersService.addPlayerSocketToMap(incomingPlayer.username, updatedRoom?.id || "", socket)
-
     io.emit(RoomEvents.JOINED, toRoomDTO(updatedRoom)) 
   })
+
+
 
   /* 
   *** RoomEvents.Leave *** 
@@ -75,6 +75,8 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     const updatedRoom = roomManager.togglePlayerReadyInRoom(userReady.username, userReady.roomId)
     io.to(userReady.roomId).emit(RoomEvents.USER_READY, toRoomDTO(updatedRoom))
   })
+
+
 
   /*
   *** RoomEvents.Start_Game ***
@@ -112,6 +114,9 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     if(game.allReady()) {
       game.resetRoundTurnState()
       game.startTurn()
+      game.getPlayers().forEach((p: Player) => {
+        registerGameEvents(p.socket, io)
+      })
       getNewGameService().updateGameStateToClient(game, GameEvents.START_ROUND)
     }
   })

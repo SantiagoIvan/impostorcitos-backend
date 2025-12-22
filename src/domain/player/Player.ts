@@ -8,7 +8,7 @@ export class Player {
 
   constructor(
     public readonly name: string,
-    public readonly socket?: Socket,
+    public readonly socket: Socket,
   ){}
   
   get alive(): boolean {

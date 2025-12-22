@@ -1,5 +1,2 @@
-export * from "./message"
 export * from "./topics"
 export * from "./words"
-export * from "./game"
-export * from "./room"

@@ -1,13 +1,19 @@
 import { Server, Socket } from "socket.io";
 import { GameEvents, SubmitWordDto, GamePhase, SubmitVoteDto } from "../lib";
-import { GameService, MoveService, PlayerService, RoomService, RoundResultService, VoteService } from "../services";
-import { defaultMessages, defaultRooms, gamesInProgress, roomSocketUserMap } from "../db";
+import { GameService, MoveService, PlayerService, RoundResultService, VoteService } from "../services";
+import { gameManager } from "../domain";
 
+/*
+*** GameEvents.Submit_Word
+- Verificamos que la fase del juego sea Play y que el jugador pueda jugar (no haya jugado y este vivo)
+- Creamos la jugada, la gregamos a la lista
+- Marcamos al jugador como que ya jugo
+- Si todos jugaron, cambiamos la fase del juego, reseteamos los flags y configuramos el turno
+    Sino, calculamos el siguiente turno
+- Emitimos el evento WORD_SUBMITTED para que todos continuen
+*/
 export const registerGameEvents = (socket: Socket, io: Server) => {
     socket.on(GameEvents.SUBMIT_WORD, (submitWordDto: SubmitWordDto) => {
-        // Primero verifico que el jugador no haya jugado antes o que este muerto o que no sea la fase correcta. Si alguna se cumple, ignoro el mensaje
-        // Cuando alguien hace una jugada, registro el Move en el array de Moves con el currentRound correspondiente
-        // Le pongo el true el HasPlayed y genero el siguiente turno
         const game = GameService.getGameById(submitWordDto.gameId)
         if(
             !(game.currentPhase === GamePhase.PLAY) || 
