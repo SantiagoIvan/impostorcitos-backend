@@ -1,4 +1,4 @@
-import { Team } from "./team.enum";
+import { Team } from "../../lib/types/game/team.enum";
 
 export interface RoundResult {
   roundId: number;

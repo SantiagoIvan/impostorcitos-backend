@@ -49,4 +49,16 @@ export class Player {
   setIsReady(flag: boolean) {
     this.isReady = flag
   }
+  die(){
+    this.isAlive = false
+  }
+  joinChannel(channel: string){
+    this.socket.join(channel)
+  }
+  leaveChannel(channel: string){
+    this.socket.leave(channel)
+  }
+  markHasPlayed(){
+    this.hasPlayed = true
+  }
 }

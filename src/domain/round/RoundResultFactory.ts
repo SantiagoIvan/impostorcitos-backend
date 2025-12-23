@@ -1,16 +1,16 @@
-import { Game, RoundResult, Team } from "../lib"
-import { GameService } from "./game.service";
+import {  RoundResult, Team } from "../../lib"
+import { Game } from "../game";
 
-export const RoundResultService = {
+export const RoundResultFactory = {
     createRoundResultDto: (game: Game, lossers: string[]): RoundResult => {
         return {
-            roundId: game.currentRound,
+            roundId: game.getCurrentRound,
             expelledPlayer : lossers.length === 1? lossers[0] : "",
             wasTie: lossers.length > 1 || lossers.length === 0,
-            winner: GameService.hasCrewWon(game, lossers) ? {
+            winner: game.hasCrewWon(lossers) ? {
                 team: Team.CREW,
                 message: "Gano el pueblo trabajador"
-            } : GameService.hasImpostorWon(game, lossers) ? {
+            } : game.hasImpostorWon(lossers) ? {
                 team: Team.IMPOSTOR,
                 message: "Gano el impostor"
             } : undefined

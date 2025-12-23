@@ -8,9 +8,7 @@ export const registerMessageEvents = (socket: Socket, io: Server) => {
   socket.join(GENERAL_CHAT_CHANNEL)
   
   socket.on(MessageEvents.CREATE, (msgDto : CreateMessageDto) => {
-    console.log("creando mensaje")
     const newMessage = messageManager.addMessage(msgDto)
-    console.log("Mensaje creado y guardado: ", newMessage)
     if(!msgDto.roomId){ // Estas en lobby, chat general
       io.to(GENERAL_CHAT_CHANNEL).emit(MessageEvents.CREATED, newMessage)
       return

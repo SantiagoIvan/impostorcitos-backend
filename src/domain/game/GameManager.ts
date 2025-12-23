@@ -1,7 +1,5 @@
-import { nextSeqGame } from "../../db";
-import { defaultTurn, GamePhase, shuffle, transformSecondsToMS } from "../../lib";
-import { RandomGeneratorService } from "../../services";
-import { roomManager, Game, Player } from "../";
+
+import { Game, GameFactory } from "../";
 import { ConsoleLogger, ILogger } from "../../logger";
 import { IGameRepository, InMemoryGameRepository } from "../../repository";
 
@@ -13,28 +11,7 @@ class GameManager {
   ){}
 
   createGame(roomId: string): Game {
-    const room = roomManager.getRoomById(roomId)
-    if(!room) {
-      this.logger.error(`Unable to create Game. Room not found`)
-      throw new Error("[GAME_MANAGER] Unable to create Game. Room not found")
-    } // mejorar y estandarizar los errores
-    const playersList = [...room.players.values()]
-
-    const randomTopic = RandomGeneratorService.generateRandomTopic()
-    const randomWord = RandomGeneratorService.generateRandomWordFromTopic(randomTopic).toString()
-    const impostor = RandomGeneratorService.generateRandomPlayer(playersList)
-    const randomOrder = shuffle(playersList.map((player: Player) => player.name))
-    
-    const game = new Game(
-      nextSeqGame(),
-      new Date(),
-      room,
-      randomTopic,
-      impostor,
-      randomWord,
-      randomOrder,
-      defaultTurn
-    );
+    const game = GameFactory.createGame(roomId)
     this.gameRepository.save(game);
     this.logger.info(`Game has been created successfully: `, game)
     return game;

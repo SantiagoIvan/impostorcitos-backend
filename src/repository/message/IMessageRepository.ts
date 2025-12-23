@@ -1,4 +1,4 @@
-import { Message } from "../../lib";
+import { Message } from "../../domain";
 
 export interface IMessageRepository {
     addMessage(msg: Message) : void

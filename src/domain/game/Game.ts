@@ -1,7 +1,7 @@
 import { Player, Room } from '../';
-import { Turn, Vote } from '../../lib';
+import { Turn, getPlayersWithMostVotes } from '../../lib';
 import { transformSecondsToMS } from '../../lib';
-import { GamePhase, Move } from "../../domain"
+import { GamePhase, Move, Vote } from "../../domain"
 
 export class Game {
   public readonly createdAt: Date = new Date();
@@ -9,7 +9,7 @@ export class Game {
   public readonly votes: Vote[] = []
   private nextTurnIndexPlayer: number = 0
   private impostorWonTheGame: boolean = false
-  private currentRound: number = 0
+  private currentRound: number = 1
   private currentPhase: GamePhase = GamePhase.PLAY
 
   constructor(
@@ -23,16 +23,6 @@ export class Game {
     private currentTurn: Turn,
     private turnTimeout?: NodeJS.Timeout
   ) {}
-
-  /*startTurn(durationMs: number, onTimeout: () => void) {
-    this.clearTurnTimeout();
-
-    this.turnTimeout = setTimeout(() => {
-      onTimeout();
-    }, durationMs);
-
-    this.updateLastActivity();
-  }*/
   get impostorWon() {
     return this.impostorWonTheGame
   }
@@ -52,6 +42,12 @@ export class Game {
   set setTurn(newTurn : Turn){
     this.currentTurn = newTurn
   }
+  set setCurrentPhase(newPhase: GamePhase){
+    this.currentPhase = newPhase
+  }
+  set setCurrentRound(num: number){
+    this.currentRound = num
+  }
 
   resetRoundTurnState(): void {
     this.room.players.forEach((p: Player) => {
@@ -59,14 +55,11 @@ export class Game {
     })
     this.nextTurnIndexPlayer = 0
   }
-  clearTurnTimeout() {
-    if (this.turnTimeout) {
-      clearTimeout(this.turnTimeout);
-      this.turnTimeout = undefined;
-    }
+  allReady(): boolean{
+    return this.room.allReady()
   }
-  allReady(){
-    return [...this.room.players.values()].every((player: Player) => player.ready)
+  allPlayed(): boolean{
+    return this.room.allPlayed()
   }
   startTurn(){
     this.currentTurn = {
@@ -79,12 +72,75 @@ export class Game {
         startedAt: Date.now()
     }
   }
+  /*startTurn(durationMs: number, onTimeout: () => void) {
+    this.clearTurnTimeout();
+
+    this.turnTimeout = setTimeout(() => {
+      onTimeout();
+    }, durationMs);
+
+    this.updateLastActivity();
+  }*/
   getPlayersAsList(): Player[] {
     return [...this.room.players.values()]
   }
 
   getPlayerByName(name: string): Player | undefined{
     return this.room.getPlayer(name)
+  }
+  addMove(move: Move){
+    this.moves.push(move)
+  }
+  addVote(vote: Vote){
+    this.votes.push(vote)
+  }
+  /*
+    Calcula el siguiente turno disponible, iterando sobre la lista de Players.
+    Le pasas un base Index y se fija, siguiendo el orden preestablecido, cual es el siguiente jugador a partir de ese index que puede jugar
+    - Si esta vivo y no jugo, puede jugar
+  */
+  computeNextTurn(index?: number) {
+        let baseIndex = index !== undefined? index:this.nextTurnIndexPlayer + 1
+        while(baseIndex < this.orderToPlay.length){
+            const player = this.getPlayerByName(this.orderToPlay[baseIndex])
+            if(player && player.alive && !player.played) {
+                this.nextTurnIndexPlayer = baseIndex
+                return
+            }
+            baseIndex += 1
+        }
+        throw new Error("No hay turno disponible") // mejorar
+  }
+  computeFirstAvailableTurn() {
+    this.computeNextTurn(0)
+  }
+
+  getMostVotedPlayers(): string[] {
+        const voteMap = new Map<string, number>()
+        this.votes.filter((vote: Vote) => vote.roundId === this.currentRound).forEach((vote: Vote) => {
+            if(vote.votedPlayer === "") return
+            const votesGivenToPlayer = voteMap.get(vote.votedPlayer) || 0
+            voteMap.set(vote.votedPlayer, votesGivenToPlayer + 1)
+        })
+        // Una vez realizado el conteo, tengo cual es el numero maximo de votos y quienes tienen ese numero
+        const { playerIds } = getPlayersWithMostVotes(voteMap);
+        return playerIds
+  }
+  killPlayer(playerName: string) {
+        const player = this.getPlayerByName(playerName)
+        if(player){
+          player.die()
+          player.joinChannel(`${this.room.id}:dead`)
+        }
+  }
+  isPlayerDead(playerName: string) { return this.room.isPlayerDead(playerName)}
+
+  hasCrewWon(lossers: string[]) { return lossers.length === 1 && lossers[0] === this.impostor}
+
+  hasImpostorWon(lossers: string[]){
+      return this.getPlayersAsList().filter((player: Player) => player.alive).length === 2 
+          && lossers.length === 1 
+          && lossers[0] !== this.impostor
   }
 
   updateLastActivity() {
@@ -99,7 +155,12 @@ export class Game {
   /* =====================
      Cleanup
      ===================== */
-
+  clearTurnTimeout() {
+    if (this.turnTimeout) {
+      clearTimeout(this.turnTimeout);
+      this.turnTimeout = undefined;
+    }
+  }
   cleanup() {
     this.clearTurnTimeout();
 /*

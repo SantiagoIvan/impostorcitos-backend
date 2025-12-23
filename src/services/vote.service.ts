@@ -1,11 +1,5 @@
-import { SubmitVoteDto, Vote } from "../lib";
+import { Vote } from "../domain"
 
 export const VoteService = {
-    createVote: (submiteVoteDto: SubmitVoteDto, roundId: number): Vote => {
-        return {
-            player: submiteVoteDto.username,
-            votedPlayer: submiteVoteDto.targetPlayer,
-            roundId
-        }
-    }
+    
 }

@@ -1,119 +1,142 @@
 import { Server, Socket } from "socket.io";
 import { GameEvents, SubmitWordDto, SubmitVoteDto } from "../lib";
-import { GameService, RoundResultService, VoteService } from "../services";
-import { gameManager, GamePhase } from "../domain";
+import { getNewGameService } from "../services";
+import { gameManager, GamePhase, Player, VoteFactory } from "../domain";
 import { ConsoleLogger } from "../logger";
 import { MoveFactory } from "../domain";
+import { RoundResultFactory } from "../domain/round";
+import { toGameDTO } from "../mappers";
 
 /*
 *** GameEvents.Submit_Word
-- Verificamos que la fase del juego sea Play y que el jugador pueda jugar (no haya jugado y este vivo)
-- Creamos la jugada, la gregamos a la lista
-- Marcamos al jugador como que ya jugo
-- Si todos jugaron, cambiamos la fase del juego, reseteamos los flags y configuramos el turno
-    Sino, calculamos el siguiente turno
-- Emitimos el evento WORD_SUBMITTED para que todos continuen
+- Verificamos que la fase del juego sea Play y que el jugador pueda jugar (no haya jugado y este vivo).
+- Creamos la jugada, la gregamos a la lista.
+- Marcamos al jugador como que ya jugo.
+- Si todos jugaron, cambiamos la fase del juego, reseteamos los flags y configuramos el turno.
+    Sino, calculamos el siguiente turno.
+- Emitimos el evento WORD_SUBMITTED para que todos continuen.
 */
-
-const logger = new ConsoleLogger("[GAME_SOCKETS]")
+const logger = new ConsoleLogger("GAME_SOCKETS")
 
 export const registerGameEvents = (socket: Socket, io: Server) => {
     socket.on(GameEvents.SUBMIT_WORD, (submitWordDto: SubmitWordDto) => {
         const game = gameManager.getGameById(submitWordDto.gameId)
-        const player = game?.getPlayerByName(submitWordDto.username)
-        if(!game || !player) {logger.error("Game o jugador inexistente");return} // Aca deberia lanzar excepcion
+        if(!game){logger.error("Game no encontrado"); return}
+        const player = game.getPlayerByName(submitWordDto.username)
+        if(!game || !player) {logger.error("Jugador inexistente");return} // Aca deberia hacer una funcion de validacion y lanzar excepcion
+
         if(
             !(game.getCurrentPhase === GamePhase.PLAY) || 
             !player.canPlay()
         ) {logger.error("No es posible realizar una jugada");return}
 
         const move = MoveFactory.createMove(submitWordDto, game.getCurrentRound)
-        GameService.addMove(game, move)
-        PlayerService.setPlayerHasPlayed(game.activePlayers, submitWordDto.username)
-        
+        game.addMove(move)
+        player.markHasPlayed()
+        logger.info(`${player.name} has played `, move)
         // Verifico si todos jugaron para saber si activo la siguiente fase
-        if(GameService.hasEverybodyPlayed(game)){
+        if(game.allPlayed()){
             // Actualizo la fase del juego y les seteo a todos de vuelta el flag hasPlayed = false
-            GameService.setGamePhase(game, GamePhase.DISCUSSION)
-            GameService.resetTurns(game)
-            GameService.startTurn(game)
+            game.setCurrentPhase = GamePhase.DISCUSSION
+            game.resetRoundTurnState()
+            game.startTurn()
         }else{
             // Calculo el siguiente turno
-            GameService.computeNextTurn(game, game.nextTurnIndexPlayer+1)
-            GameService.startTurn(game)
+            game.computeNextTurn()
+            game.startTurn()
         }
-        io.to(game.room.id).emit(GameEvents.WORD_SUBMITTED, game)
+        getNewGameService().updateGameStateToClient(game, GameEvents.WORD_SUBMITTED)
     })
 
     socket.on(GameEvents.DISCUSSION_TURN_END, ({username,gameId}:{username: string, gameId: string}) => {
-        const game = GameService.getGameById(gameId)
-        if(
-            !(game.currentPhase === GamePhase.DISCUSSION) || 
-            !PlayerService.canPlay(game, username)
-        ) return
+        const game = gameManager.getGameById(gameId)
+        if(!game){logger.error("Game no encontrado"); return}
+        const player = game.getPlayerByName(username)
+        if(!game || !player) {logger.error("Jugador inexistente");return} // Aca deberia lanzar excepcion
 
-        PlayerService.setPlayerHasPlayed(game.activePlayers, username)
-        if(!GameService.hasEverybodyPlayed(game)) return 
+        if(
+            !(game.getCurrentPhase === GamePhase.DISCUSSION) || 
+            !player.canPlay()
+        ) {logger.error("No es posible realizar una jugada");return}
+
+        player.markHasPlayed()
+        logger.info(`${player.name} Discussion TimeOut`)
+        if(!game.allPlayed()) return 
         
-        GameService.setGamePhase(game, GamePhase.VOTE)
-        GameService.resetTurns(game)
-        GameService.startTurn(game) // Dejo el turno preparado para la siguiente fase
-        io.to(game.room.id).emit(GameEvents.VOTE_TURN, game)
+        logger.info(`End of discussion`)
+        game.setCurrentPhase = GamePhase.VOTE
+        game.resetRoundTurnState()
+        game.startTurn() // Dejo el turno preparado para la siguiente fase
+        getNewGameService().updateGameStateToClient(game, GameEvents.VOTE_TURN)
         
     })
 
     socket.on(GameEvents.SUBMIT_VOTE, async (submitVoteDto: SubmitVoteDto) => {
-        const game = GameService.getGameById(submitVoteDto.gameId)
+        const game = gameManager.getGameById(submitVoteDto.gameId)
+        if(!game){logger.error("Game no encontrado"); return}
+        const player = game.getPlayerByName(submitVoteDto.username)
+        if(!game || !player) {logger.error("Jugador inexistente");return} // Aca deberia lanzar excepcion
+
         if(
-            !(game.currentPhase === GamePhase.VOTE) || 
-            !PlayerService.canPlay(game, submitVoteDto.username)
-        ) return
+            !(game.getCurrentPhase === GamePhase.VOTE) || 
+            !player.canPlay()
+        ) {logger.error("No es posible realizar una jugada");return}
 
-        const vote = VoteService.createVote(submitVoteDto, game.currentRound)
-        GameService.addVote(game, vote)
-        PlayerService.setPlayerHasPlayed(game.activePlayers, submitVoteDto.username)
-        
+        const vote = VoteFactory.createVote(submitVoteDto, game.getCurrentRound)
+        game.addVote(vote)
+        player.markHasPlayed()
+        logger.info(`${player.name} has voted `, vote)
 
-        io.to(game.room.id).emit(GameEvents.VOTE_SUBMITTED, game)
+        getNewGameService().updateGameStateToClient(game, GameEvents.VOTE_SUBMITTED) // Por ahora en el front no hago nada pero podria ir mostrando una tablita con los votos
 
         // Verifico si todos jugaron
-        if(!GameService.hasEverybodyPlayed(game)) return
+        if(!game.allPlayed()) return
         
         // Primero cuento votos
-        const lossers = GameService.getMostVotedPlayers(game)
+        const lossers = game.getMostVotedPlayers()
+        logger.info(`Lossers of round ${game.getCurrentRound}: `, lossers)
         
-        GameService.setGamePhase(game, GamePhase.ROUND_RESULT)
-        GameService.resetTurns(game)
+        
+        game.setCurrentPhase = GamePhase.ROUND_RESULT
+        game.resetRoundTurnState()
         
         if(lossers.length === 1){
-            GameService.killPlayer(game, lossers[0])
+            game.killPlayer(lossers[0])
         }
 
-        io.to(game.room.id).emit(GameEvents.ROUND_RESULT, {game, roundResult: RoundResultService.createRoundResultDto(game, lossers)})
-        if(GameService.hasCrewWon(game, lossers) || GameService.hasImpostorWon(game, lossers)){
-            GameService.cleanUpGame(game)
-            console.log("[GAME_SOCKET] Listo, se muestra a continuacion el estado de la ponele que BD")
-            console.log(roomSocketUserMap)
-            console.log(defaultRooms)
-            console.log(gamesInProgress)
-            console.log(defaultMessages) // Me falta agregar un roomId a los mensajes asi puedo eliminarlos
+        const roundResult = RoundResultFactory.createRoundResultDto(game, lossers)
+        logger.info("Round result: ", roundResult)
+        game.getPlayersAsList().forEach((player: Player) => {
+            if(player.name === game.impostor){
+                player.socket.emit(GameEvents.ROUND_RESULT, {game: toGameDTO(game, true), roundResult})
+            }else{
+                player.socket.emit(GameEvents.ROUND_RESULT, {game: toGameDTO(game), roundResult})
+            }
+        })
+        if(game.hasCrewWon(lossers) || game.hasImpostorWon(lossers)){
+            gameManager.endGame(game.id)
+            logger.info("Game Ended successfully: ", gameManager.getGameById(game.id))
         }
     })
 
     socket.on(GameEvents.NEXT_ROUND, ({gameId, username} : {gameId: string, username: string}) => {
-        const game = GameService.getGameById(gameId)
-        if(!(game.currentPhase === GamePhase.ROUND_RESULT) || GameService.hasPlayerPlayed(game, username)) return
-        PlayerService.setPlayerHasPlayed(game.activePlayers, username)
-        
+        const game = gameManager.getGameById(gameId)
+        if(!game){logger.error("Game no encontrado"); return}
+        const player = game.getPlayerByName(username)
+        if(!game || !player) {logger.error("Jugador inexistente");return} // Aca deberia lanzar excepcion
 
-        if(!GameService.hasEverybodyPlayed(game)) return
+        if(!(game.getCurrentPhase === GamePhase.ROUND_RESULT) || player.played) return
         
-        GameService.setGamePhase(game, GamePhase.PLAY)
-        GameService.resetTurns(game)
-        GameService.computeNextTurn(game, 0)
-        GameService.startTurn(game) // configuro el objeto Turn
-        GameService.setCurrentRound(game, game.currentRound + 1)
-        io.to(game.room.id).emit(GameEvents.START_ROUND, game)
+        player.markHasPlayed()
+
+        if(!game.allPlayed()) return
+        
+        game.setCurrentPhase = GamePhase.PLAY
+        game.resetRoundTurnState()
+        game.computeFirstAvailableTurn()
+        game.startTurn() // configuro el objeto Turn
+        game.setCurrentRound = game.getCurrentRound + 1
+        getNewGameService().updateGameStateToClient(game, GameEvents.START_ROUND)
         
     })
 }

@@ -60,4 +60,16 @@ export class Room{
     getPlayer(name: string): Player | undefined{
         return this.players.get(name)
     }
+    allReady(): boolean {
+        return this.getPlayersAsList().every((player: Player) => player.ready)
+    }
+    allPlayed(): boolean {
+        return this.getPlayersAsList().every((player: Player) => player.played)
+    }
+    getPlayersAsList(): Player[] {
+        return [...this.players.values()]
+    }
+    isPlayerDead(playerName: string){
+        return this.getPlayersAsList().some((player: Player) => player.name === playerName && player.alive)
+    }
 }

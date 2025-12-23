@@ -17,9 +17,7 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   - Creamos el room y el mapa para almacenar los sockets de cada jugador
   */
   socket.on(RoomEvents.CREATE, (roomDto : CreateRoomDto) => {
-    
     const newRoom = roomManager.createRoom(roomDto)
-    
     io.emit(RoomEvents.CREATED, toRoomDTO(newRoom))
   })
   
