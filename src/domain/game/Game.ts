@@ -1,4 +1,4 @@
-import { Player, Room } from '../';
+import { Player, Room, RoundResult } from '../';
 import { Turn, getPlayersWithMostVotes } from '../../lib';
 import { transformSecondsToMS } from '../../lib';
 import { GamePhase, Move, Vote } from "../../domain"
@@ -7,6 +7,7 @@ export class Game {
   public readonly createdAt: Date = new Date();
   public readonly moves: Move[] = []
   public readonly votes: Vote[] = []
+  public readonly roundResults : RoundResult[] = []
   private nextTurnIndexPlayer: number = 0
   private impostorWonTheGame: boolean = false
   private currentRound: number = 1
@@ -93,6 +94,12 @@ export class Game {
   }
   addVote(vote: Vote){
     this.votes.push(vote)
+  }
+  addRoundResult(roundResult : RoundResult){
+    this.roundResults.push(roundResult)
+  }
+  getLastRoundResult() : RoundResult {
+    return this.roundResults[this.roundResults.length-1]
   }
   /*
     Calcula el siguiente turno disponible, iterando sobre la lista de Players.

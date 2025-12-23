@@ -1,5 +1,5 @@
 import { Socket, Server } from "socket.io"
-import { getNewGameService } from "../services"
+import { gameService } from "../services"
 import { RoomEvents, CreateRoomDto, JoinRoomDto, GameEvents, RoomDto, GameDto } from "../lib"
 import { registerGameEvents } from "./game.sockets";
 import { toRoomDTO, toRoomDTOArray, toGameDTO } from "../mappers";
@@ -89,7 +89,7 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     const rooms = toRoomDTOArray(roomManager.getRooms())
     io.emit(RoomEvents.LIST, rooms)
 
-    getNewGameService().updateGameStateToClient(newGame, RoomEvents.REDIRECT_TO_GAME)
+    gameService.updateGameStateToClient(newGame, RoomEvents.REDIRECT_TO_GAME)
   })
 
 
@@ -114,7 +114,7 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
       game.getPlayersAsList().forEach((p: Player) => {
         registerGameEvents(p.socket, io)
       })
-      getNewGameService().updateGameStateToClient(game, GameEvents.START_ROUND)
+      gameService.updateGameStateToClient(game, GameEvents.START_ROUND)
     }
   })
 }

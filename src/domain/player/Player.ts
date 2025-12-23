@@ -33,7 +33,7 @@ export class Player {
     return this.isAlive === true
   }
   canPlay() : boolean {
-    return this.isAlive && !this.hasPlayed && !this.skipPhase
+    return this.alive && !this.hasPlayed && !this.skipPhase
   }
   markSkipPhase(){
     this.skipPhase = true

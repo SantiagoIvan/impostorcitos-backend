@@ -64,7 +64,9 @@ export class Room{
         return this.getPlayersAsList().every((player: Player) => player.ready)
     }
     allPlayed(): boolean {
-        return this.getPlayersAsList().every((player: Player) => player.played)
+        return this.getPlayersAsList()
+            .filter((player: Player) => player.alive)
+            .every((player: Player) => player.played)
     }
     getPlayersAsList(): Player[] {
         return [...this.players.values()]
