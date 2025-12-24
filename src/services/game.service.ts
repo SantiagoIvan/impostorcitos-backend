@@ -21,7 +21,6 @@ class GameService {
     }
     
     validatePlayerCanPlayInPhase(game: Game, targetPhase: GamePhase, player: Player){
-        console.log(`Validate Player ${player.name} can play ${player.canPlay()} in phase target ${targetPhase} game phase ${game.getCurrentPhase}`)
         if(
             (game.getCurrentPhase !== targetPhase) || 
             !player.canPlay()
@@ -45,10 +44,11 @@ class GameService {
         const move = MoveFactory.createMove(submitWordDto, game.getCurrentRound)
         game.addMove(move)
         player.markHasPlayed()
-        this.logger.info(`${player.name} has played `, move)
+        this.logger.info(`${player.name} has successfully played `, move.word)
 
         // Verifico si todos jugaron para saber si activo la siguiente fase
         if(game.allPlayed()){
+            this.logger.warn("Starting discussion phase")
             // Actualizo la fase del juego y les seteo a todos de vuelta el flag hasPlayed = false
             game.setCurrentPhase = GamePhase.DISCUSSION
             game.resetRoundTurnState()
@@ -91,7 +91,7 @@ class GameService {
         const vote = VoteFactory.createVote(submitVoteDto, game.getCurrentRound)
         game.addVote(vote)
         player.markHasPlayed()
-        this.logger.info(`${player.name} has voted `, vote)
+        this.logger.info(`${player.name} has voted `, vote.votedPlayer)
 
         return game
     }
@@ -122,14 +122,15 @@ class GameService {
     }
 
     nextRound({gameId, username}: PlayerReadyDto): Game | undefined{
+        this.logger.warn(`Player ${username} is ready for next round`)
         const game = this.validateGameExists(gameId)
         const player = this.validatePlayerExistsIngame(game, username)
         if(game.getCurrentPhase !== GamePhase.ROUND_RESULT || player.played){
             this.logger.warn(`Player ${player.name} has played or game is incorrect`)
+            return
         }
         
         player.markHasPlayed()
-        console.log("Played?", player.played)
         if(!game.allPlayed()) return
         
         game.setCurrentPhase = GamePhase.PLAY
@@ -137,6 +138,7 @@ class GameService {
         game.computeFirstAvailableTurn()
         game.startTurn() // configuro el objeto Turn
         game.setCurrentRound = game.getCurrentRound + 1
+        this.logger.warn(`Next round ready. First turn for ${game.getCurrentTurn.player} `, )
         return game
     }
 }
