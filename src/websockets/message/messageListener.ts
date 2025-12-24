@@ -1,13 +1,12 @@
-import { Socket, Server} from "socket.io"
-import { MessageEvents, CreateMessageDto } from "../lib"
-import { gameManager, messageManager } from "../domain";
-import { GENERAL_CHAT_CHANNEL } from "..";
+import { CreateMessageDto, MessageEvents } from "../../lib"
+import { ConsoleLogger } from "../../logger"
+import { GENERAL_CHAT_CHANNEL, io } from "../.."
+import { gameManager, messageManager } from "../../domain"
 
-export const registerMessageEvents = (socket: Socket, io: Server) => {
-  
-  socket.join(GENERAL_CHAT_CHANNEL)
-  
-  socket.on(MessageEvents.CREATE, (msgDto : CreateMessageDto) => {
+const logger = new ConsoleLogger("MESSAGE_LISTENER")
+
+export function onMessageCreate(msgDto : CreateMessageDto){
+  try{
     const newMessage = messageManager.addMessage(msgDto)
     if(!msgDto.roomId){ // Estas en lobby, chat general
       io.to(GENERAL_CHAT_CHANNEL).emit(MessageEvents.CREATED, newMessage)
@@ -28,7 +27,8 @@ export const registerMessageEvents = (socket: Socket, io: Server) => {
     if(player && player.alive){
       io.to(`${msgDto.roomId}`).emit(MessageEvents.CREATED, newMessage)
     }
+  }catch(error: any){
+    logger.error(error.message)
+  }
     
-  })
-  // podria agregar la posibilidad de borrar mensajes tipo wpp, y aca emitir el msj de deleted y que se les borre a todos
 }

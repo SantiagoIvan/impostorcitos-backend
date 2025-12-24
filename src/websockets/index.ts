@@ -1,3 +1,3 @@
-export * from "./message.sockets"
+export * from "./message"
 export * from "./room"
 export * from "./game"
