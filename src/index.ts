@@ -3,8 +3,9 @@ import express from "express";
 import http from "http";
 import { Server, Socket } from "socket.io";
 import cors from "cors";
-import { SocketEvents } from "./lib";
+import { GameEvents, RoomEvents, SocketEvents } from "./lib";
 import { emitRoomList, registerAllRoomEvents, registerMessageEvents } from "./websockets";
+import { gameManager, Game, Player } from "./domain";
 
 const PORT = process.env.PORT || 4000
 export const GENERAL_CHAT_CHANNEL = process.env.GENERAL_CHAT_CHANNEL || "GENERAL"
@@ -43,5 +44,20 @@ server.listen(PORT, () => {
 });
 
 const handleDisconnect = (socket: Socket, io: Server) => {
+  socket.removeAllListeners(RoomEvents.CREATE)
+  socket.removeAllListeners(RoomEvents.JOIN)
+  socket.removeAllListeners(RoomEvents.LEAVE)
+  socket.removeAllListeners(RoomEvents.READY)
+  socket.removeAllListeners(RoomEvents.START_GAME)
+  socket.removeAllListeners(GameEvents.PLAYER_READY)
+  const found = gameManager.getAll().find((game: Game) => 
+    game.getPlayersAsList().filter((player: Player) => 
+      player.socket.id === socket.id
+    ).length > 0
+  )
+  if(found){
+    gameManager.endGame(found.id)
+    console.log("Terminamos la partida")
+  }
   console.log("Hasta siempre, soldado")
 }
