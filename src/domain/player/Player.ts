@@ -1,4 +1,7 @@
 import { Socket } from 'socket.io';
+import { Game } from '../game';
+import { GameEvents } from '../../lib';
+import { onDiscussionTurnEnd, onNextRound, onSubmitVote, onSubmitWord } from '../../websockets';
 
 export class Player {
   private isAlive: boolean = true
@@ -60,5 +63,14 @@ export class Player {
   }
   markHasPlayed(){
     this.hasPlayed = true
+  }
+  cleanUp(game: Game){
+    this.socket.leave(game.id)
+    this.socket.leave(`${game.id}:dead`)
+    this.socket.leave(game.room.id)
+    this.socket.off(GameEvents.SUBMIT_WORD, onSubmitWord)
+    this.socket.off(GameEvents.DISCUSSION_TURN_END, onDiscussionTurnEnd)
+    this.socket.off(GameEvents.SUBMIT_VOTE, onSubmitVote)
+    this.socket.off(GameEvents.NEXT_ROUND, onNextRound)
   }
 }

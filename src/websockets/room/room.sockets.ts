@@ -1,25 +1,27 @@
 import { Socket, Server } from "socket.io"
-import { gameService } from "../services"
-import { RoomEvents, CreateRoomDto, JoinRoomDto, GameEvents, RoomDto, GameDto } from "../lib"
-import { registerGameEvents } from "./game.sockets";
-import { toRoomDTO, toRoomDTOArray, toGameDTO } from "../mappers";
-import { Game, gameManager, roomManager, Player } from "../domain";
-import { GENERAL_CHAT_CHANNEL } from "..";
+import { gameService, roomService } from "../../services"
+import { RoomEvents, CreateRoomDto, JoinRoomDto, GameEvents, RoomDto, GameDto } from "../../lib"
+import { registerGameEvents } from "../game";
+import { toRoomDTO, toRoomDTOArray, toGameDTO } from "../../mappers";
+import { Game, gameManager, roomManager, Player } from "../../domain";
+import { GENERAL_CHAT_CHANNEL } from "../..";
+import { Console } from "console";
+import { ConsoleLogger } from "../../logger";
+import { onRoomCreate } from "./room.listeners";
 
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: RoomDto[]) => void }) => {
   const rooms = toRoomDTOArray(roomManager.getRooms())
   socket.emit(RoomEvents.LIST, rooms)
 }
 
+const logger = new ConsoleLogger("ROOM_SERVICE")
+
 export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   /* 
   *** RoomEvents.Create ***
   - Creamos el room y el mapa para almacenar los sockets de cada jugador
   */
-  socket.on(RoomEvents.CREATE, (roomDto : CreateRoomDto) => {
-    const newRoom = roomManager.createRoom(roomDto)
-    io.emit(RoomEvents.CREATED, toRoomDTO(newRoom))
-  })
+  socket.on(RoomEvents.CREATE, onRoomCreate)
   
 
 
@@ -34,14 +36,18 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   - Cuando un jugador se une a un room, se une al canal especifico y se va del general
   */
   socket.on(RoomEvents.JOIN, (incomingPlayer : JoinRoomDto) => {
-    if(roomManager.isPlayerInRoom(incomingPlayer.username, incomingPlayer.roomId)) return
-    const player = new Player(incomingPlayer.username, socket)
-    const updatedRoom = roomManager.addPlayerToRoom(player, incomingPlayer.roomId)
-
-    socket.leave(GENERAL_CHAT_CHANNEL)
-    socket.join(incomingPlayer.roomId)
-
-    io.emit(RoomEvents.JOINED, toRoomDTO(updatedRoom)) 
+    try{
+      if(roomManager.isPlayerInRoom(incomingPlayer.username, incomingPlayer.roomId)) return
+      const player = new Player(incomingPlayer.username, socket)
+      const updatedRoom = roomManager.addPlayerToRoom(player, incomingPlayer.roomId)
+  
+      socket.leave(GENERAL_CHAT_CHANNEL)
+      socket.join(incomingPlayer.roomId)
+  
+      io.emit(RoomEvents.JOINED, toRoomDTO(updatedRoom))
+    }catch(error: any){
+      logger.error(error.message)
+    }
   })
 
 

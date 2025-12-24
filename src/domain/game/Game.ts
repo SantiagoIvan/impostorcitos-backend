@@ -170,6 +170,9 @@ export class Game {
   }
   cleanup() {
     this.clearTurnTimeout();
+    this.room.getPlayersAsList().forEach((player: Player) => {
+      player.cleanUp(this)
+    })
 /*
     for (const player of this.players) {
       if (player.gameListeners) {

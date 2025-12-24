@@ -1,9 +1,10 @@
 import { Server, Socket } from "socket.io";
-import { GameEvents, SubmitWordDto, SubmitVoteDto, PlayerReadyDto } from "../lib";
-import { gameService } from "../services";
-import { Game, gameManager, GameNotFoundError, GamePhase, Player, PlayerCantPlay, PlayerNotFoundError, VoteFactory, MoveFactory, RoundResultFactory } from "../domain";
-import { ConsoleLogger } from "../logger";
-import { toGameDTO } from "../mappers";
+import { GameEvents, SubmitWordDto, SubmitVoteDto, PlayerReadyDto } from "../../lib";
+import { gameService } from "../../services";
+import { Game, gameManager, GameNotFoundError, GamePhase, Player, PlayerCantPlay, PlayerNotFoundError, VoteFactory, MoveFactory, RoundResultFactory } from "../../domain";
+import { ConsoleLogger } from "../../logger";
+import { toGameDTO } from "../../mappers";
+import { onDiscussionTurnEnd, onNextRound, onSubmitVote, onSubmitWord } from "./gameListeners";
 
 const logger = new ConsoleLogger("GAME_SOCKETS")
 
@@ -17,15 +18,7 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         Sino, calculamos el siguiente turno.
     - Emitimos el evento WORD_SUBMITTED para que todos continuen.
     */
-    socket.on(GameEvents.SUBMIT_WORD, (submitWordDto: SubmitWordDto) => {
-        try{
-            const updatedGame = gameService.play(submitWordDto)
-            gameService.updateGameStateToClient(updatedGame, GameEvents.WORD_SUBMITTED)
-
-        }catch(error: any){
-            logger.error(error.message)
-        }
-    })
+    socket.on(GameEvents.SUBMIT_WORD, onSubmitWord)
 
     /*
     *** GameEvents.Discussion_Turn_End
@@ -36,15 +29,7 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
         Sino, esperamos al resto.
     - Emitimos el evento VOTE_TURN para que todos continuen con la siguiente fase.
     */
-    socket.on(GameEvents.DISCUSSION_TURN_END, ({username,gameId}:PlayerReadyDto) => {
-        try{
-            const game = gameService.discuss({username,gameId})
-            
-            if(game) gameService.updateGameStateToClient(game, GameEvents.VOTE_TURN)
-        }catch(error: any){
-            logger.error(error.message)
-        }
-    })
+    socket.on(GameEvents.DISCUSSION_TURN_END, onDiscussionTurnEnd)
 
 
 
@@ -62,23 +47,7 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
     - Si hubo ganador, se borra la partida. Sino, se emite el evento de ROUND_RESULT y se espera a que todos hagan Click en Continuar para
     recibir el evento NEXT_ROUND y jugar de vuelta
     */
-    socket.on(GameEvents.SUBMIT_VOTE, async (submitVoteDto: SubmitVoteDto) => {
-        try{
-            const game = gameService.vote(submitVoteDto)
-            
-            gameService.updateGameStateToClient(game, GameEvents.VOTE_SUBMITTED)
-           
-            if(!game.allPlayed()) return
-
-            const finalRoundGame = gameService.computeGameResults(game)
-            // Le envio el resultado de la ronda a los jugadores si todos jugaron
-            finalRoundGame.getPlayersAsList().forEach((player: Player) => {
-                player.socket.emit(GameEvents.ROUND_RESULT, {game: toGameDTO(finalRoundGame, player.name), roundResult: finalRoundGame.getLastRoundResult()})
-            })
-        }catch(error: any){
-            logger.error(error.message)
-        }
-    })
+    socket.on(GameEvents.SUBMIT_VOTE, onSubmitVote)
 
 
 
@@ -91,13 +60,5 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
     - Si ya estan todos listos, configuramos el juego para la siguiente fase, que es la primera del principio, con la siguiente ronda
     Calculamos tambien cual es el primer turno, siguiendo el orden que calculamos al inicio de la partida.
     */
-    socket.on(GameEvents.NEXT_ROUND, ({gameId, username} : PlayerReadyDto) => {
-        try{
-            const game = gameService.nextRound({gameId, username})
-            if(!game) return
-            gameService.updateGameStateToClient(game, GameEvents.START_ROUND)
-        }catch(error: any){
-            logger.error(error.message)
-        }
-    })
+    socket.on(GameEvents.NEXT_ROUND, onNextRound)
 }
