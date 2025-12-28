@@ -56,8 +56,8 @@ const handleDisconnect = (socket: Socket, io: Server) => {
   socket.removeAllListeners(RoomEvents.START_GAME)
   socket.removeAllListeners(GameEvents.PLAYER_READY)
 
-  // Me fijo si esta en una sala, para eliminarlo de ahi y volver a emitir el evento de lista a todos los clientes
   let playerName = ""
+  // Me fijo si esta en una sala, para eliminarlo de ahi y volver a emitir el evento de lista a todos los clientes
   const roomFound = roomManager.getRooms().find((room: Room) => 
     room.getPlayersAsList().some((player: Player) =>
       {
