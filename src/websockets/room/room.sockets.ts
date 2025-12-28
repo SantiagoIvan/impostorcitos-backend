@@ -1,20 +1,18 @@
 import { Socket, Server } from "socket.io"
-import { gameService, roomService } from "../../services"
-import { RoomEvents, CreateRoomDto, JoinRoomDto, GameEvents, RoomDto, GameDto } from "../../lib"
-import { registerGameEvents } from "../game";
-import { toRoomDTO, toRoomDTOArray, toGameDTO } from "../../mappers";
-import { Game, gameManager, roomManager, Player } from "../../domain";
+import { RoomEvents, JoinRoomDto, GameEvents, RoomDto } from "../../lib"
+import { toRoomDTO, toRoomDTOArray } from "../../mappers";
+import { roomManager, Player } from "../../domain";
 import { GENERAL_CHAT_CHANNEL } from "../..";
-import { Console } from "console";
 import { ConsoleLogger } from "../../logger";
 import { onPlayerReady, onRoomCreate, onRoomReady, onStartGame } from "./room.listeners";
+
+const logger = new ConsoleLogger("ROOM_SERVICE")
 
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: RoomDto[]) => void }) => {
   const rooms = toRoomDTOArray(roomManager.getRooms())
   socket.emit(RoomEvents.LIST, rooms)
 }
 
-const logger = new ConsoleLogger("ROOM_SERVICE")
 
 export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   /* 

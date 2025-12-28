@@ -5,12 +5,15 @@ import { Server, Socket } from "socket.io";
 import cors from "cors";
 import { GameEvents, RoomEvents, SocketEvents } from "./lib";
 import { emitRoomList, registerAllRoomEvents, registerMessageEvents } from "./websockets";
-import { gameManager, Game, Player } from "./domain";
+import { gameManager, Game, Player, roomManager, Room } from "./domain";
+import { ConsoleLogger } from "./logger";
+import { toRoomDTOArray } from "./mappers";
 
 const PORT = process.env.PORT || 4000
 export const GENERAL_CHAT_CHANNEL = process.env.GENERAL_CHAT_CHANNEL || "GENERAL"
 export const MIN_PLAYERS_QUANTITY = process.env.MIN_PLAYERS_QUANTITY || 3
 const app = express();
+const logger = new ConsoleLogger("SERVER")
 
 app.use(cors({
     origin: "*",
@@ -25,8 +28,12 @@ export const io = new Server(server, {
   }
 });
 
+server.listen(PORT, () => {
+  logger.info(`Socket.IO server escuchando en puerto ${PORT}`);
+});
+
 io.on(SocketEvents.CONNECTION, (socket) => {
-  console.log("Cliente conectado:", socket.id);
+  logger.info("Cliente conectado")
 
   socket.on(SocketEvents.DISCONNECT, () => {
     handleDisconnect(socket, io)
@@ -39,25 +46,51 @@ io.on(SocketEvents.CONNECTION, (socket) => {
   registerMessageEvents(socket, io)
 });
 
-server.listen(PORT, () => {
-  console.log(`Socket.IO server escuchando en puerto ${PORT}`);
-});
 
 const handleDisconnect = (socket: Socket, io: Server) => {
+  logger.info("A player has left the game")
   socket.removeAllListeners(RoomEvents.CREATE)
   socket.removeAllListeners(RoomEvents.JOIN)
   socket.removeAllListeners(RoomEvents.LEAVE)
   socket.removeAllListeners(RoomEvents.READY)
   socket.removeAllListeners(RoomEvents.START_GAME)
   socket.removeAllListeners(GameEvents.PLAYER_READY)
-  const found = gameManager.getAll().find((game: Game) => 
-    game.getPlayersAsList().filter((player: Player) => 
-      player.socket.id === socket.id
-    ).length > 0
+
+  // Me fijo si esta en una sala, para eliminarlo de ahi y volver a emitir el evento de lista a todos los clientes
+  let playerName = ""
+  const roomFound = roomManager.getRooms().find((room: Room) => 
+    room.getPlayersAsList().some((player: Player) =>
+      {
+        if(player.socket.id === socket.id){
+          playerName = player.name
+          return true
+        }
+      }
+    )
   )
-  if(found){
-    gameManager.endGame(found.id)
-    console.log("Terminamos la partida")
+  if(roomFound){
+    logger.info(`El jugador ${playerName} estaba en la sala ${roomFound.id}. Actualizando lista de salas...`)
+    roomFound.removePlayer(playerName)
+    io.emit(RoomEvents.LIST, toRoomDTOArray(roomManager.getRooms()))
+    logger.info(`Lista actualizada en los clietes`)
   }
-  console.log("Hasta siempre, soldado")
+
+  // Me fijo si esta en una partida
+  const gameFound = gameManager.getAll().find((game: Game) => 
+    game.getPlayersAsList().some((player: Player) => 
+      {
+        if(player.socket.id === socket.id){
+          playerName = player.name
+          return true
+        }
+      }
+    )
+  )
+  if(gameFound){
+    logger.info(`Encontramos al jugador ${playerName}, vamos a finalizar la partida`)
+    console.log(gameFound.getPlayersAsList())
+    gameManager.endGame(gameFound.id)
+    logger.info(`Partida ${gameFound.id} finalizada`)
+  }
+  logger.info("Hasta siempre, soldado")
 }
