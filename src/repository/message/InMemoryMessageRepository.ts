@@ -27,4 +27,7 @@ export class InMemoryMessageRepository
     delete(roomId: string): void {
       this.channelMessages.delete(roomId)
     }
+    getAll(): Map<string, Message[]> {
+      return this.channelMessages
+    }
 }

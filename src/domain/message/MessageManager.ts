@@ -22,6 +22,9 @@ class MessageManager{
     getMessagesByRoom(roomId: string | undefined): Message[] {
         return this.messageRepository.getMessagesByRoom(roomId) || []
     }
+    getAll(): Map<string, Message[]> {
+        return this.messageRepository.getAll()
+    }
 }
 
 export const messageManager = new MessageManager(

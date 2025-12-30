@@ -2,7 +2,6 @@ import { CreateRoomDto, RoomEvents } from "../lib"
 import { Player, PlayerNotFoundError, Room, roomManager } from "../domain"
 import { ConsoleLogger, ILogger } from "../logger"
 import { toRoomDTOArray } from "../mappers"
-import { emitRoomList } from "../websockets"
 import { io } from ".."
 
 class RoomService {

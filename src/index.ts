@@ -15,7 +15,9 @@ export const GENERAL_CHAT_CHANNEL = process.env.GENERAL_CHAT_CHANNEL || "GENERAL
 export const MIN_PLAYERS_QUANTITY = process.env.MIN_PLAYERS_QUANTITY || 3
 export const MAX_MESSAGE_LENGTH = parseInt(process.env.MAX_MESSAGE_LENGTH || "80")
 export const CLEANUP_JOB_INTERVAL = parseInt(process.env.CLEANUP_JOB_INTERVAL || "60000")
-export const MAX_IDLE_TIME = parseInt(process.env.CLEANUP_JOB_INTERVAL || "300000")
+export const ROOM_TTL = parseInt(process.env.ROOM_TTL || "300000")
+export const GAME_TTL = parseInt(process.env.GAME_TTL || "300000")
+export const MESSAGE_TTL = parseInt(process.env.MESSAGE_TTL || "300000")
 const app = express();
 const logger = new ConsoleLogger("SERVER")
 
