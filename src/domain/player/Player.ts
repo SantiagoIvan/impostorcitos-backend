@@ -41,6 +41,10 @@ export class Player {
   markSkipPhase(){
     this.skipPhase = true
   }
+  disconnect(game: Game) {
+    this.isAlive = false
+    this.cleanUp(game)
+  }
   toogleIsReady(){
     this.isReady = !this.isReady
   }

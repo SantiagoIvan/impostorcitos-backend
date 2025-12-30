@@ -1,4 +1,4 @@
-import { Player, Room, RoundResult } from '../';
+import { Player, PlayerNotFoundError, Room, RoundResult } from '../';
 import { Turn, getPlayersWithMostVotes } from '../../lib';
 import { transformSecondsToMS } from '../../lib';
 import { GamePhase, Move, Vote } from "../../domain"
@@ -173,17 +173,24 @@ export class Game {
     this.room.getPlayersAsList().forEach((player: Player) => {
       player.cleanUp(this)
     })
-/*
-    for (const player of this.players) {
-      if (player.gameListeners) {
-        const { socket, gameListeners } = player;
-        socket.off('play:word', gameListeners.playWord);
-        socket.off('leave:game', gameListeners.leaveGame);
-        player.gameListeners = undefined;
-      }
-
-      player.socket.leave(this.id);
-    }
-*/
   }
+
+  /* =====================
+     Handler Player Left / Disconnect
+     ===================== */
+  disconnectPlayer(playerName: string){
+    const player = this.getPlayerByName(playerName)
+    if(!player) throw new PlayerNotFoundError(playerName, this.id)
+
+    player.disconnect(this)
+  }
+  validStateToPlay(){
+    // Esta en un estado valido si hay al menos 3 jugadores y uno de ellos es el impostor
+    const playersAlive = this.getPlayersAsList()
+      .filter((player: Player) => player.alive)
+
+    return playersAlive.some((player: Player) => player.name === this.impostor) && playersAlive.length >=3
+      
+  }
+
 }

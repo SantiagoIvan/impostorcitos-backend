@@ -52,7 +52,7 @@ export class RoomManager {
         if(room){
             room.addPlayer(player)
             this.roomRepository.save(room)
-            this.logger.info(`Se ha unido ${player.name} a la sala ${room.id}: Cantidad de jugadores: ${room.getPlayerCount()}`, room)
+            this.logger.info(`Se ha unido ${player.name} a la sala ${room.id}: Cantidad de jugadores: ${room.getPlayerCount()}`, room.players)
             return room
         }
         throw new Error(`[RoomManager] Sala ${roomId} inexistente`) // mejorar

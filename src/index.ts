@@ -87,10 +87,9 @@ const handleDisconnect = (socket: Socket, io: Server) => {
     )
   )
   if(gameFound){
-    logger.info(`Encontramos al jugador ${playerName}, vamos a finalizar la partida`)
+    logger.info(`Encontramos al jugador ${playerName} en ${gameFound.id}, vamos a ver si sigue la partida y reiniciar la ronda o terminarla.`)
     console.log(gameFound.getPlayersAsList())
-    gameManager.endGame(gameFound.id)
-    logger.info(`Partida ${gameFound.id} finalizada`)
+    gameManager.handlePlayerDisconnected(playerName, gameFound)
   }
   logger.info("Hasta siempre, soldado")
 }

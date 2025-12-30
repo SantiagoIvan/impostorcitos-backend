@@ -54,6 +54,7 @@ export function onPlayerReady({username, gameId}:{username: string, gameId: stri
           game.resetRoundTurnState()
           game.startTurn()
           game.getPlayersAsList().forEach((p: Player) => {
+            p.socket.join(game.id)
             registerGameEvents(p.socket, io)
           })
           gameService.updateGameStateToClient(game, GameEvents.START_ROUND)

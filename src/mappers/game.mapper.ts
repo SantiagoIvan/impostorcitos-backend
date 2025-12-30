@@ -1,6 +1,7 @@
 import { Game } from "../domain";
 import { GameDto } from "../lib";
 import { toRoomDTO } from "./room.mapper";
+import { toVoteArrayDTO } from "./vote.mapper";
 
 export function toGameDTO(game: Game, clientName: string | undefined = undefined): GameDto {
   return {
@@ -8,7 +9,7 @@ export function toGameDTO(game: Game, clientName: string | undefined = undefined
     room: toRoomDTO(game.room),
     topic: game.topic,
     moves: game.moves,
-    votes: game.votes,
+    votes: toVoteArrayDTO(game.votes),
     impostor: clientName === game.impostor,
     impostorWonTheGame: game.impostorWon,
     currentTurn: game.getCurrentTurn,

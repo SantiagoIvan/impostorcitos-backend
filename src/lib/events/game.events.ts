@@ -10,5 +10,7 @@ export enum GameEvents {
     VOTE_SUBMITTED = "game:vote_submitted", // LO EMITE EL SV PARA NOTIFICAR EL VOTO DE LOS JUGADORES Y PODER MOSTRAR EL CONTEO
     ROUND_RESULT = "game:round_result", // LO EMITE EL SV AL RECIBIR SUBMIT VOTE DE TODOS, CALCULA EL EJECUTADO Y LO NOTIFICA
     END_GAME = "game:end_game", // SI EL EL EXECUTED PLAYER ES EL IMPOSTOR, EMITE ESTE
-    NEXT_ROUND = "game:next_round"
+    NEXT_ROUND = "game:next_round",
+    LEAVE_GAME = "game:leave_game",
+    PLAYER_LEFT_GAME = "game:player_left_game"
 }

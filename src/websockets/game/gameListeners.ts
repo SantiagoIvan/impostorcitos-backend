@@ -1,7 +1,9 @@
-import { Player } from "../../domain"
-import { GameEvents, PlayerReadyDto, SubmitVoteDto, SubmitWordDto } from "../../lib"
-import { ConsoleLogger, ILogger } from "../../logger"
+import { io } from "../.."
+import { gameManager, GameNotFoundError, Player } from "../../domain"
+import { GameEvents, PlayerLeftGameDto, PlayerReadyDto, SubmitVoteDto, SubmitWordDto } from "../../lib"
+import { ConsoleLogger } from "../../logger"
 import { toGameDTO } from "../../mappers"
+import { toVoteArrayDTO } from "../../mappers/vote.mapper"
 import { gameService } from "../../services"
 
 const logger = new ConsoleLogger("GAME_SOCKETS")
@@ -30,7 +32,7 @@ export function onSubmitVote(submitVoteDto: SubmitVoteDto){
     try{
         const game = gameService.vote(submitVoteDto)
         
-        gameService.updateGameStateToClient(game, GameEvents.VOTE_SUBMITTED)
+        io.to(game.id).emit(GameEvents.VOTE_SUBMITTED, toVoteArrayDTO(game.votes))
         
         if(!game.allPlayed()) return
 
@@ -49,6 +51,17 @@ export function onNextRound({gameId, username} : PlayerReadyDto){
         const game = gameService.nextRound({gameId, username})
         if(!game) return
         gameService.updateGameStateToClient(game, GameEvents.START_ROUND)
+    }catch(error: any){
+        logger.error(error.message)
+    }
+}
+
+export function onPlayerDisconnect(playerLeftDto: PlayerLeftGameDto) {
+    try{
+        const game = gameManager.getGameById(playerLeftDto.gameId)
+        if(!game) throw new GameNotFoundError(playerLeftDto.gameId)
+
+        gameManager.handlePlayerDisconnected(playerLeftDto.username, game)
     }catch(error: any){
         logger.error(error.message)
     }

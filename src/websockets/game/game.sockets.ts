@@ -4,7 +4,7 @@ import { gameService } from "../../services";
 import { Game, gameManager, GameNotFoundError, GamePhase, Player, PlayerCantPlay, PlayerNotFoundError, VoteFactory, MoveFactory, RoundResultFactory } from "../../domain";
 import { ConsoleLogger } from "../../logger";
 import { toGameDTO } from "../../mappers";
-import { onDiscussionTurnEnd, onNextRound, onSubmitVote, onSubmitWord } from "./gameListeners";
+import { onDiscussionTurnEnd, onNextRound, onSubmitVote, onSubmitWord, onPlayerDisconnect } from "./gameListeners";
 
 const logger = new ConsoleLogger("GAME_SOCKETS")
 
@@ -61,4 +61,14 @@ export const registerGameEvents = (socket: Socket, io: Server) => {
     Calculamos tambien cual es el primer turno, siguiendo el orden que calculamos al inicio de la partida.
     */
     socket.on(GameEvents.NEXT_ROUND, onNextRound)
+
+
+    /*
+    *** GameEvents.PLAYER_LEFT_GAME
+    - Se ejecuta cuando el usuario abadona voluntariamete la partida, o bie ejecutamos solo la fucion handler si el jugador refresca o cierra el browser
+    - Marcamos al jugador como muerto
+    - Vemos si el juego puede continuar con un jugador menos
+    - Si es asi, se resetea la ronda, disparando a todo el canal un START_ROUND y reconfigurando el turno
+    */
+    socket.on(GameEvents.LEAVE_GAME, onPlayerDisconnect)
 }
