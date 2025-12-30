@@ -1,9 +1,9 @@
-import { randomInt } from "crypto"
-import { words } from "../db"
-import { topics } from "../db"
-import { parseTopic, RoomDto, CreateRoomDto } from "../lib"
+import { CreateRoomDto, RoomEvents } from "../lib"
 import { Player, PlayerNotFoundError, Room, roomManager } from "../domain"
 import { ConsoleLogger, ILogger } from "../logger"
+import { toRoomDTOArray } from "../mappers"
+import { emitRoomList } from "../websockets"
+import { io } from ".."
 
 class RoomService {
     constructor(
@@ -15,6 +15,10 @@ class RoomService {
     playerReady(username: string, roomId: string): Room{
         if(!roomManager.isPlayerInRoom(username, roomId)) throw new PlayerNotFoundError(username, roomId)
         return roomManager.togglePlayerReadyInRoom(username, roomId)
+    }
+    notifyAbortRoomToPlayer(player: Player) {
+        player.socket.emit(RoomEvents.ABORT_ROOM)
+        io.emit(RoomEvents.LIST, toRoomDTOArray(roomManager.getRooms()))
     }
 }
 

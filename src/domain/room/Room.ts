@@ -18,6 +18,9 @@ export class Room{
         private password?: string
     ){}
 
+    get lastActivity(): Date {
+        return this.lastActivityAt
+    }
     isPublic(): boolean { return this.privacy === RoomType.PUBLIC}
 
     updateLastActivity() {
@@ -74,4 +77,7 @@ export class Room{
     isPlayerDead(playerName: string){
         return this.getPlayersAsList().some((player: Player) => player.name === playerName && player.alive)
     }
+    isIdle(maxIdleMs: number): boolean { // la idea es volar los que queden huerfanos
+    return Date.now() - this.lastActivity.getTime() > maxIdleMs
+  }
 }

@@ -9,5 +9,6 @@ export enum RoomEvents {
     READY = "room:ready",
     USER_READY = "room:user_ready",
     START_GAME = "room:start_game",
-    REDIRECT_TO_GAME = "room:redirect_to_game"
+    REDIRECT_TO_GAME = "room:redirect_to_game",
+    ABORT_ROOM = "room:abort"
 }

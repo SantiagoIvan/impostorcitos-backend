@@ -1,12 +1,13 @@
 import { CreateMessageDto, MessageEvents } from "../../lib"
 import { ConsoleLogger } from "../../logger"
-import { GENERAL_CHAT_CHANNEL, io } from "../.."
+import { GENERAL_CHAT_CHANNEL, io, MAX_MESSAGE_LENGTH } from "../.."
 import { gameManager, messageManager } from "../../domain"
 
 const logger = new ConsoleLogger("MESSAGE_LISTENER")
 
 export function onMessageCreate(msgDto : CreateMessageDto){
   try{
+    msgDto.text = msgDto.text.substring(0, MAX_MESSAGE_LENGTH)
     const newMessage = messageManager.addMessage(msgDto)
     if(!msgDto.roomId){ // Estas en lobby, chat general
       io.to(GENERAL_CHAT_CHANNEL).emit(MessageEvents.CREATED, newMessage)

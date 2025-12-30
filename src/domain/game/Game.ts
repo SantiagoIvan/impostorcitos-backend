@@ -22,7 +22,6 @@ export class Game {
     public readonly secretWord: string,
     public readonly orderToPlay: string[],
     private currentTurn: Turn,
-    private turnTimeout?: NodeJS.Timeout
   ) {}
   get impostorWon() {
     return this.impostorWonTheGame
@@ -30,7 +29,9 @@ export class Game {
   get getCurrentTurn() {
     return this.currentTurn
   }
-
+  get lastActivity(): Date {
+    return this.lastActivityAt
+  }
   get getNextTurnIndexPlayer() {
     return this.nextTurnIndexPlayer
   }
@@ -55,6 +56,7 @@ export class Game {
       p.resetPlayerTurn()
     })
     this.nextTurnIndexPlayer = 0
+    this.updateLastActivity()
   }
   allReady(): boolean{
     return this.room.allReady()
@@ -72,16 +74,8 @@ export class Game {
               transformSecondsToMS(this.room.voteTime),
         startedAt: Date.now()
     }
+    this.updateLastActivity()
   }
-  /*startTurn(durationMs: number, onTimeout: () => void) {
-    this.clearTurnTimeout();
-
-    this.turnTimeout = setTimeout(() => {
-      onTimeout();
-    }, durationMs);
-
-    this.updateLastActivity();
-  }*/
   getPlayersAsList(): Player[] {
     return [...this.room.players.values()]
   }
@@ -91,12 +85,15 @@ export class Game {
   }
   addMove(move: Move){
     this.moves.push(move)
+    this.updateLastActivity()
   }
   addVote(vote: Vote){
     this.votes.push(vote)
+    this.updateLastActivity()
   }
   addRoundResult(roundResult : RoundResult){
     this.roundResults.push(roundResult)
+    this.updateLastActivity()
   }
   getLastRoundResult() : RoundResult {
     return this.roundResults[this.roundResults.length-1]
@@ -107,38 +104,42 @@ export class Game {
     - Si esta vivo y no jugo, puede jugar
   */
   computeNextTurn(index?: number) {
-        let baseIndex = index !== undefined? index:this.nextTurnIndexPlayer + 1
-        while(baseIndex < this.orderToPlay.length){
-            const player = this.getPlayerByName(this.orderToPlay[baseIndex])
-            if(player && player.alive && !player.played) {
-                this.nextTurnIndexPlayer = baseIndex
-                return
-            }
-            baseIndex += 1
+    this.updateLastActivity()
+    let baseIndex = index !== undefined? index:this.nextTurnIndexPlayer + 1
+    while(baseIndex < this.orderToPlay.length){
+        const player = this.getPlayerByName(this.orderToPlay[baseIndex])
+        if(player && player.alive && !player.played) {
+            this.nextTurnIndexPlayer = baseIndex
+            return
         }
-        throw new Error("No hay turno disponible") // mejorar
+        baseIndex += 1
+    }
+    throw new Error("No hay turno disponible") // mejorar
   }
   computeFirstAvailableTurn() {
     this.computeNextTurn(0)
+    this.updateLastActivity()
   }
 
   getMostVotedPlayers(): string[] {
-        const voteMap = new Map<string, number>()
-        this.votes.filter((vote: Vote) => vote.roundId === this.currentRound).forEach((vote: Vote) => {
-            if(vote.votedPlayer === "") return
-            const votesGivenToPlayer = voteMap.get(vote.votedPlayer) || 0
-            voteMap.set(vote.votedPlayer, votesGivenToPlayer + 1)
-        })
-        // Una vez realizado el conteo, tengo cual es el numero maximo de votos y quienes tienen ese numero
-        const { playerIds } = getPlayersWithMostVotes(voteMap);
-        return playerIds
+    this.updateLastActivity()
+    const voteMap = new Map<string, number>()
+    this.votes.filter((vote: Vote) => vote.roundId === this.currentRound).forEach((vote: Vote) => {
+        if(vote.votedPlayer === "") return
+        const votesGivenToPlayer = voteMap.get(vote.votedPlayer) || 0
+        voteMap.set(vote.votedPlayer, votesGivenToPlayer + 1)
+    })
+    // Una vez realizado el conteo, tengo cual es el numero maximo de votos y quienes tienen ese numero
+    const { playerIds } = getPlayersWithMostVotes(voteMap);
+    return playerIds
   }
   killPlayer(playerName: string) {
-        const player = this.getPlayerByName(playerName)
-        if(player){
-          player.die()
-          player.joinChannel(`${this.room.id}:dead`)
-        }
+    const player = this.getPlayerByName(playerName)
+    if(player){
+      player.die()
+      player.joinChannel(`${this.room.id}:dead`)
+    }
+    this.updateLastActivity()
   }
   isPlayerDead(playerName: string) { return this.room.isPlayerDead(playerName)}
 
@@ -155,21 +156,13 @@ export class Game {
   }
 
   isIdle(maxIdleMs: number): boolean { // la idea es volar los que queden huerfanos
-    //return Date.now() - this.lastActivityAt > maxIdleMs;
-    return false
+    return Date.now() - this.lastActivity.getTime() > maxIdleMs
   }
 
   /* =====================
      Cleanup
      ===================== */
-  clearTurnTimeout() {
-    if (this.turnTimeout) {
-      clearTimeout(this.turnTimeout);
-      this.turnTimeout = undefined;
-    }
-  }
   cleanup() {
-    this.clearTurnTimeout();
     this.room.getPlayersAsList().forEach((player: Player) => {
       player.cleanUp(this)
     })
@@ -184,6 +177,7 @@ export class Game {
 
     player.disconnect(this)
   }
+  
   validStateToPlay(){
     // Esta en un estado valido si hay al menos 3 jugadores y uno de ellos es el impostor
     const playersAlive = this.getPlayersAsList()

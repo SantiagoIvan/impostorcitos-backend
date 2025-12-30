@@ -3,6 +3,9 @@ import { CreateRoomDto } from "../../lib";
 import { ConsoleLogger, ILogger } from "../../logger";
 import { InMemoryRoomRepository } from "../../repository/room/InMemoryRoomRepository";
 import { IRoomRepository } from "../../repository/room/IRoomRepository";
+import { roomService } from "../../services";
+import { emitRoomList } from "../../websockets";
+import { RoomNotFoundError } from "../errors";
 import { Player } from "../player";
 import { Room } from "./Room";
 
@@ -81,7 +84,22 @@ export class RoomManager {
         this.roomRepository.delete(roomId)
         this.logger.info(`Se ha eliminado la sala`, roomId)
     }
-    // Faltaria un metodo para revisar los que tienen mucha antiguedad y borrarlos. Eso podria hacerlo otra entidad
+    cleanUpRoom(roomId: string){
+        try{
+            this.logger.info(`Limpiando la sala`, roomId)
+            const room = this.getRoomById(roomId)
+            if(!room) throw new RoomNotFoundError(roomId)
+
+            room.getPlayersAsList().forEach((player: Player) => {
+                // Emitir evento para redirigirlos al lobby
+                roomManager.removeRoom(roomId)
+                roomService.notifyAbortRoomToPlayer(player)
+            })
+            this.logger.info(`Se ha limpiado la sala`, roomId)
+        }catch(error: any){
+            this.logger.error(error.message)
+        }
+    }
 }
 
 export const roomManager = new RoomManager(
