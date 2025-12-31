@@ -108,6 +108,7 @@ export class Game {
     let baseIndex = index !== undefined? index:this.nextTurnIndexPlayer + 1
     while(baseIndex < this.orderToPlay.length){
         const player = this.getPlayerByName(this.orderToPlay[baseIndex])
+        console.log(`Desde computeNextTurn name alive hasplayed`, player?.name, player?.alive, player?.played)
         if(player && player.alive && !player.played) {
             this.nextTurnIndexPlayer = baseIndex
             return

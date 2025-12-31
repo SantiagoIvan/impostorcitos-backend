@@ -42,8 +42,9 @@ export class Player {
     this.skipPhase = true
   }
   disconnect(game: Game) {
-    this.isAlive = false
+    this.die()
     this.cleanUp(game)
+    console.log("jugador muerto", this)
   }
   toogleIsReady(){
     this.isReady = !this.isReady

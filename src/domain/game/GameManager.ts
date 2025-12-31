@@ -1,5 +1,5 @@
 
-import { Game, GameFactory } from "../";
+import { Game, GameFactory, GamePhase, Player, RoundResultFactory } from "../";
 import { ConsoleLogger, ILogger } from "../../logger";
 import { IGameRepository, InMemoryGameRepository } from "../../repository";
 import { io } from "../..";
@@ -47,7 +47,7 @@ class GameManager {
         return
       }
 
-      // Lo seteo como desconectado
+      // Desconectamos al jugador
       game.disconnectPlayer(playerName)
 
       // Emitir que se desconecto uno
@@ -55,12 +55,12 @@ class GameManager {
       
       if(game.validStateToPlay()){
         // Emitir evento START_ROUD y reconfigurar el game
-        this.logger.info(`Valido para seguir jugando, vamos a resetear la ronda`)
-        game.resetRoundTurnState()
-        game.computeFirstAvailableTurn()
-        this.logger.info(`El siguiente turno es de ${game.getCurrentTurn.player}. Ronda ${game.getCurrentRound}`)
-        
-        gameService.updateGameStateToClient(game, GameEvents.START_ROUND)
+        this.logger.info(`Valido para seguir jugando, vamos a ver si salteo el turno`)
+        const gameWithRoundResult = playerLeftRoundResult(playerName, game)
+        gameWithRoundResult.resetRoundTurnState()
+        gameWithRoundResult.getPlayersAsList().forEach((player: Player) => {
+            player.socket.emit(GameEvents.ROUND_RESULT, {game: toGameDTO(gameWithRoundResult, player.name), roundResult: gameWithRoundResult.getLastRoundResult()})
+        })
         
       }else{
         // Emitir END Game.
@@ -73,6 +73,13 @@ class GameManager {
     }
 
   }
+}
+
+function playerLeftRoundResult(playerName: string, game: Game): Game {
+  game.setCurrentPhase = GamePhase.ROUND_RESULT
+  const roundResult = RoundResultFactory.createRoundResultDto(game, [playerName])
+  game.addRoundResult(roundResult)
+  return game
 }
 
 
