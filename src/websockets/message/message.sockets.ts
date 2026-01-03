@@ -1,10 +1,9 @@
 import { Socket, Server} from "socket.io"
-import { MessageEvents, CreateMessageDto } from "../../lib"
-import { gameManager, messageManager } from "../../domain";
+import { MessageEvents } from "../../lib"
 import { GENERAL_CHAT_CHANNEL } from "../..";
 import { onMessageCreate } from "./messageListener";
 
-export const registerMessageEvents = (socket: Socket, io: Server) => {
+export const registerMessageEvents = (socket: Socket) => {
   
   socket.join(GENERAL_CHAT_CHANNEL)
   

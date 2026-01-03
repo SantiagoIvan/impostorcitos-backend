@@ -11,6 +11,7 @@ import { toRoomDTOArray } from "./mappers";
 import { startCleanupJobs } from "./jobs";
 import authRoutes from "./routes/auth.routes"
 import { errorMiddleware } from "./middleware/error.middleware";
+import { userManager } from "./domain/user/UserManager";
 
 const PORT = process.env.PORT || 4000
 export const GENERAL_CHAT_CHANNEL = process.env.GENERAL_CHAT_CHANNEL || "GENERAL"
@@ -45,8 +46,17 @@ server.listen(PORT, () => {
 });
 
 io.on(SocketEvents.CONNECTION, (socket) => {
-  logger.info("Cliente conectado")
+  const {username} = socket.handshake.auth // En la version posta, aca deberia enviar el JWT y desencriptarlo para obtener el username, pero bueno
+  logger.info(`Cliente conectado: ${username}`)
 
+  const user = userManager.getUserByUsername(username)
+  if(!user) {
+    logger.error(`User ${username} not found`)
+    return
+  }
+
+  user.setSocket = socket
+  
   socket.on(SocketEvents.DISCONNECT, () => {
     handleDisconnect(socket, io)
   })
@@ -55,52 +65,47 @@ io.on(SocketEvents.CONNECTION, (socket) => {
 
   // Registramos a los eventos de los rooms
   registerAllRoomEvents(socket, io)
-  registerMessageEvents(socket, io)
+  registerMessageEvents(socket)
 });
 
 
 const handleDisconnect = (socket: Socket, io: Server) => {
   logger.info("A player has left the game")
-  socket.removeAllListeners(RoomEvents.CREATE)
-  socket.removeAllListeners(RoomEvents.JOIN)
-  socket.removeAllListeners(RoomEvents.LEAVE)
-  socket.removeAllListeners(RoomEvents.READY)
-  socket.removeAllListeners(RoomEvents.START_GAME)
-  socket.removeAllListeners(GameEvents.PLAYER_READY)
+  socket.removeAllListeners()
 
   let playerName = ""
+  // Obtengo al jugador del UserManager
+  const user = userManager.getUserBySocketId(socket.id)
+  if(!user){
+    logger.error(`User Not Found`)
+    return
+  }
+
   // Me fijo si esta en una sala, para eliminarlo de ahi y volver a emitir el evento de lista a todos los clientes
-  const roomFound = roomManager.getRooms().find((room: Room) => 
-    room.getPlayersAsList().some((player: Player) =>
-      {
-        if(player.socket.id === socket.id){
-          playerName = player.name
-          return true
-        }
-      }
-    )
-  )
-  if(roomFound){
-    logger.info(`El jugador ${playerName} estaba en la sala ${roomFound.id}. Actualizando lista de salas...`)
+  const roomId = user.getRoomId()
+  if(roomId){
+    const roomFound = roomManager.getRoomById(roomId)
+    if(!roomFound) {
+      logger.error("Sala no encontrada")
+      return
+    }
+    
+    logger.info(`El jugador ${playerName} estaba en la sala ${roomId}. Actualizando lista de salas a los clientes...`)
     roomFound.removePlayer(playerName)
     io.emit(RoomEvents.LIST, toRoomDTOArray(roomManager.getRooms()))
     logger.info(`Lista actualizada en los clietes`)
   }
 
   // Me fijo si esta en una partida
-  const gameFound = gameManager.getAll().find((game: Game) => 
-    game.getPlayersAsList().some((player: Player) => 
-      {
-        if(player.socket.id === socket.id){
-          playerName = player.name
-          return true
-        }
-      }
-    )
-  )
-  if(gameFound){
-    logger.info(`Encontramos al jugador ${playerName} en ${gameFound.id}, vamos a ver si sigue la partida y reiniciar la ronda o terminarla.`)
-    console.log(gameFound.getPlayersAsList())
+  const gameId = user.getGameId()
+  if(gameId){
+    const gameFound = gameManager.getGameById(gameId)
+    if(!gameFound) {
+      logger.error("Game no encontrada")
+      return
+    }
+
+    logger.info(`Encontramos al jugador ${playerName} en ${gameId}, vamos a ver si sigue la partida y reiniciar la ronda o terminarla.`)
     gameManager.handlePlayerDisconnected(playerName, gameFound)
   }
   logger.info("Hasta siempre, soldado")

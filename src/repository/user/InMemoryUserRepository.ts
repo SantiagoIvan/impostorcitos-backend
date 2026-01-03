@@ -10,4 +10,14 @@ implements IUserRepository{
         }
         return false
     }
+    getUserByUsername(username: string): User | undefined{
+        for(let user of this.items.values()){
+            if(user.username === username) return user
+        }
+    }
+    getUserBySocketId(skId: string): User | undefined {
+        for(let user of this.items.values()){
+            if(user.getSocket()?.id === skId) return user
+        }
+    }
 } 

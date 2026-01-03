@@ -32,9 +32,15 @@ class UserManager {
     userExists(username: string): boolean{
         return this.userRepository.userExists(username)
     }
+    getUserByUsername(username: string): User | undefined {
+        return this.userRepository.getUserByUsername(username)
+    }
+    getUserBySocketId(skId: string): User | undefined {
+        return this.userRepository.getUserBySocketId(skId)
+    }
 }
 
 export const userManager = new UserManager(
-    new InMemoryUserRepository,
+    new InMemoryUserRepository(),
     new ConsoleLogger(UserManager.name)
 )
