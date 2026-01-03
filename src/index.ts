@@ -3,9 +3,9 @@ import express from "express";
 import http from "http";
 import { Server, Socket } from "socket.io";
 import cors from "cors";
-import { GameEvents, RoomEvents, SocketEvents } from "./lib";
+import { RoomEvents, SocketEvents } from "./lib";
 import { emitRoomList, registerAllRoomEvents, registerMessageEvents } from "./websockets";
-import { gameManager, Game, Player, roomManager, Room } from "./domain";
+import { gameManager, roomManager } from "./domain";
 import { ConsoleLogger } from "./logger";
 import { toRoomDTOArray } from "./mappers";
 import { startCleanupJobs } from "./jobs";
@@ -31,9 +31,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(errorMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api/room", roomRoutes)
-app.use(errorMiddleware);
 
 const server = http.createServer(app);
 
@@ -48,7 +48,10 @@ server.listen(PORT, () => {
 });
 
 io.on(SocketEvents.CONNECTION, (socket) => {
-  const {username} = socket.handshake.auth // En la version posta, aca deberia enviar el JWT y desencriptarlo para obtener el username, pero bueno
+  const {username} = socket.handshake.auth 
+  // Esto solamente ocurre durante el handshake
+  // En la version posta, aca deberia enviar el JWT recibido durante el login y desencriptarlo para obtener el username, pero bueno,
+  // No voy a agregar por el momento el jwt me parece una banda
   logger.info(`Cliente conectado: ${username}`)
 
   const user = userManager.getUserByUsername(username)
@@ -115,8 +118,3 @@ const handleDisconnect = (socket: Socket, io: Server) => {
 }
 
 startCleanupJobs()
-
-setInterval(() => {
-  logger.info("Logging connected users")
-  console.log(userManager.getUsers())
-}, 10000)

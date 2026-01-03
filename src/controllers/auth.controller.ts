@@ -13,7 +13,7 @@ export const login = async (
 ): Promise<void> => {
   try {
     const { username } = req.body; // Eventualmente aca iria el password tambien
-    const result = await loginUser(username);
+    const result = await loginUser(username); // No jode que sea await asi en el futuro no lo cambio cuando me integre con redis o algo
 
     res.status(200).json(result);
   } catch (error) {
