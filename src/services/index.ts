@@ -1,3 +1,4 @@
 export * from "./game.service"
 export * from "./randomGenerator.service"
 export * from "./room.service"
+export * from "./auth.service"

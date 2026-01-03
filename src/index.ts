@@ -9,6 +9,8 @@ import { gameManager, Game, Player, roomManager, Room } from "./domain";
 import { ConsoleLogger } from "./logger";
 import { toRoomDTOArray } from "./mappers";
 import { startCleanupJobs } from "./jobs";
+import authRoutes from "./routes/auth.routes"
+import { errorMiddleware } from "./middleware/error.middleware";
 
 const PORT = process.env.PORT || 4000
 export const GENERAL_CHAT_CHANNEL = process.env.GENERAL_CHAT_CHANNEL || "GENERAL"
@@ -25,6 +27,10 @@ app.use(cors({
     origin: "*",
     credentials: true
 }));
+
+app.use(express.json());
+app.use("/auth", authRoutes);
+app.use(errorMiddleware);
 
 const server = http.createServer(app);
 

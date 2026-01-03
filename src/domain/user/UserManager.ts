@@ -1,3 +1,4 @@
+import { nextSeqUser } from "../../db";
 import { ConsoleLogger, ILogger } from "../../logger";
 import {  } from "../../repository";
 import { InMemoryUserRepository, IUserRepository } from "../../repository";
@@ -10,7 +11,9 @@ class UserManager {
         private readonly logger: ILogger
       ){}
 
-    addUser(user: User): User{
+    addUser(username: string): User{
+        const userId = nextSeqUser() // Volar esta negrada cuando me integre con Redis
+        const user = new User(userId, username) // Cuando se conecta por WS ahi le agrego el sk al objeto
         this.userRepository.save(user)
         return user
     }
@@ -20,7 +23,7 @@ class UserManager {
             if(!user) throw new UserNotFoundError(userId)
 
             this.logger.warn(`Removing user ${userId}...`)
-            user.getSocket().removeAllListeners()
+            user.getSocket()?.removeAllListeners()
             this.userRepository.delete(userId)
         }catch(error: any){
             this.logger.error(error.message)

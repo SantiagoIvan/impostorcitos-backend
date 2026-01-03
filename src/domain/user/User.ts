@@ -4,7 +4,7 @@ export class User{
     constructor(
         public readonly id: string,
         public readonly username: string,
-        private socket: Socket
+        private socket?: Socket
     ){}
 
     getUsername(){
@@ -12,5 +12,8 @@ export class User{
     }
     getSocket(){
         return this.socket
+    }
+    set setSocket(sk: Socket){
+        this.socket = sk
     }
 }
