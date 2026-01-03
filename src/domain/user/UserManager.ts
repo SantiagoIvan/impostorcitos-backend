@@ -15,6 +15,7 @@ class UserManager {
         const userId = nextSeqUser() // Volar esta negrada cuando me integre con Redis
         const user = new User(userId, username) // Cuando se conecta por WS ahi le agrego el sk al objeto
         this.userRepository.save(user)
+        console.log("users so far:", this.userRepository.getAll())
         return user
     }
     removeUser(userId: string){
