@@ -1,9 +1,9 @@
 import { Room } from "../../domain/room";
-import { InMemoryMapRepository } from "../InMemoryRepository";
+import { InMemoryRepository } from "../InMemoryRepository";
 import { IRoomRepository } from "./IRoomRepository";
 
 export class InMemoryRoomRepository
-  extends InMemoryMapRepository<Room>
+  extends InMemoryRepository<Room>
   implements IRoomRepository {
 
   findPublicRooms(): Room[] {
