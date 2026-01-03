@@ -10,6 +10,7 @@ import { ConsoleLogger } from "./logger";
 import { toRoomDTOArray } from "./mappers";
 import { startCleanupJobs } from "./jobs";
 import authRoutes from "./routes/auth.routes"
+import roomRoutes from "./routes/room.routes"
 import { errorMiddleware } from "./middleware/error.middleware";
 import { userManager } from "./domain/user/UserManager";
 
@@ -30,7 +31,8 @@ app.use(cors({
 }));
 
 app.use(express.json());
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/room", roomRoutes)
 app.use(errorMiddleware);
 
 const server = http.createServer(app);
@@ -113,3 +115,8 @@ const handleDisconnect = (socket: Socket, io: Server) => {
 }
 
 startCleanupJobs()
+
+setInterval(() => {
+  logger.info("Logging connected users")
+  console.log(userManager.getUsers())
+}, 10000)

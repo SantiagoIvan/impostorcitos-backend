@@ -39,6 +39,9 @@ class UserManager {
     getUserBySocketId(skId: string): User | undefined {
         return this.userRepository.getUserBySocketId(skId)
     }
+    getUsers(): User[]{
+        return this.userRepository.getAll()
+    }
 }
 
 export const userManager = new UserManager(

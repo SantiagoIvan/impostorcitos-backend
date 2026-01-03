@@ -37,6 +37,7 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     try{
       if(roomManager.isPlayerInRoom(incomingPlayer.username, incomingPlayer.roomId)) return
       const player = new Player(incomingPlayer.username, socket)
+      // Buscar al user por name y agregarle el roomId, sacarselo en el Leave. Cuando empieza el juego agregarle el gameIdy cuando termin se lo sacas
       const updatedRoom = roomManager.addPlayerToRoom(player, incomingPlayer.roomId)
   
       socket.leave(GENERAL_CHAT_CHANNEL)

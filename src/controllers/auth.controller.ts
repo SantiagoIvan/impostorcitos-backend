@@ -13,7 +13,6 @@ export const login = async (
 ): Promise<void> => {
   try {
     const { username } = req.body; // Eventualmente aca iria el password tambien
-
     const result = await loginUser(username);
 
     res.status(200).json(result);

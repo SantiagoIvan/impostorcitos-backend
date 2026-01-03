@@ -13,7 +13,7 @@ export const loginUser = async (
 ): Promise<LoginResponse> => {
   const userExists = userManager.userExists(username);
 
-  if (!userExists) {
+  if (userExists) {
     throw new UserAlreadyExistsError(username);
   }
   const user = userManager.addUser(username)
