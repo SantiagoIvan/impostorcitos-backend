@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { loginUser } from "../services";
+import { loginUser, logoutUser } from "../services";
 
 interface LoginRequestBody {
   username: string;
@@ -20,3 +20,19 @@ export const login = async (
     next(error);
   }
 };
+
+export const logout = async (
+  req: Request<{}, {}, LoginRequestBody>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { username } = req.body;
+    const result = await logoutUser(username); 
+
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+

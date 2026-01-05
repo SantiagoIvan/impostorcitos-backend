@@ -1,7 +1,7 @@
 import { CreateRoomDto, RoomEvents } from "../lib"
 import { Player, PlayerNotFoundError, Room, roomManager } from "../domain"
 import { ConsoleLogger, ILogger } from "../logger"
-import { toRoomDTOArray } from "../mappers"
+import { toRoomDTO, toRoomDTOArray } from "../mappers"
 import { io } from ".."
 
 class RoomService {
@@ -11,7 +11,7 @@ class RoomService {
     createRoom(roomDto: CreateRoomDto): Room{
         this.logger.info(`Creating room...`)
         const newRoom = roomManager.createRoom(roomDto)
-        this.logger.info(`New room created! ID: `, newRoom.id) 
+        this.logger.info(`New room created! ID: `, newRoom.id)
         return newRoom
     }
     playerReady(username: string, roomId: string): Room{

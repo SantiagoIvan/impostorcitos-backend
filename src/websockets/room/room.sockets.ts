@@ -11,6 +11,7 @@ const logger = new ConsoleLogger("ROOM_SERVICE")
 export const emitRoomList = (socket: { emit: (arg0: RoomEvents, arg1: RoomDto[]) => void }) => {
   const rooms = toRoomDTOArray(roomManager.getRooms())
   socket.emit(RoomEvents.LIST, rooms)
+  logger.info("Rooms have been sent")
 }
 
 

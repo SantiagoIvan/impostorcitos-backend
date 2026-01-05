@@ -31,9 +31,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
-app.use(errorMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api/room", roomRoutes)
+app.use(errorMiddleware);
 
 const server = http.createServer(app);
 
@@ -54,16 +54,19 @@ io.on(SocketEvents.CONNECTION, (socket) => {
   // No voy a agregar por el momento el jwt me parece una banda
   logger.info(`Cliente conectado: ${username}`)
 
-  const user = userManager.getUserByUsername(username)
+  let user = userManager.getUserByUsername(username)
   if(!user) {
-    logger.error(`User ${username} not found`)
-    return
+    logger.warn(`User ${username} not found`)
+    // Agregarlo a la lista de usuarios
+    user = userManager.addUser(username)
   }
 
   user.setSocket = socket
   
   socket.on(SocketEvents.DISCONNECT, () => {
-    handleDisconnect(socket, io)
+    console.log("Disconnect event", socket.handshake.auth)
+    const user = userManager.getUserBySocketId(socket.id)
+    if(user) userManager.handleDisconnect(user)
   })
   // Enviar rooms al conectarse
   emitRoomList(socket)
@@ -72,49 +75,5 @@ io.on(SocketEvents.CONNECTION, (socket) => {
   registerAllRoomEvents(socket, io)
   registerMessageEvents(socket)
 });
-
-
-const handleDisconnect = (socket: Socket, io: Server) => {
-  logger.info("A player has left the game")
-  socket.removeAllListeners()
-
-  let playerName = ""
-  // Obtengo al jugador del UserManager
-  const user = userManager.getUserBySocketId(socket.id)
-  if(!user){
-    logger.error(`User Not Found`)
-    return
-  }
-
-  // Me fijo si esta en una sala, para eliminarlo de ahi y volver a emitir el evento de lista a todos los clientes
-  const roomId = user.getRoomId()
-  if(roomId){
-    const roomFound = roomManager.getRoomById(roomId)
-    if(!roomFound) {
-      logger.error("Sala no encontrada")
-      return
-    }
-    
-    logger.info(`El jugador ${playerName} estaba en la sala ${roomId}. Actualizando lista de salas a los clientes...`)
-    roomFound.removePlayer(playerName)
-    io.emit(RoomEvents.LIST, toRoomDTOArray(roomManager.getRooms()))
-    logger.info(`Lista actualizada en los clietes`)
-  }
-
-  // Me fijo si esta en una partida
-  const gameId = user.getGameId()
-  if(gameId){
-    const gameFound = gameManager.getGameById(gameId)
-    if(!gameFound) {
-      logger.error("Game no encontrada")
-      return
-    }
-
-    logger.info(`Encontramos al jugador ${playerName} en ${gameId}, vamos a ver si sigue la partida y reiniciar la ronda o terminarla.`)
-    gameManager.handlePlayerDisconnected(playerName, gameFound)
-  }
-  userManager.removeUser(user.id)
-  logger.info("Hasta siempre, soldado")
-}
 
 startCleanupJobs()
