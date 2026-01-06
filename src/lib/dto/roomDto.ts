@@ -1,4 +1,4 @@
-import { RoomType } from "../"
+import { RoomType } from "../../domain"
 import {PlayerDto} from "./playerDto"
 
 export interface RoomDto {

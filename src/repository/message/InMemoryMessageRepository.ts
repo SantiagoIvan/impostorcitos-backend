@@ -8,16 +8,13 @@ export class InMemoryMessageRepository
 
     addMessage(newMessage: Message): void {
       const channel = newMessage.roomId || GENERAL_CHAT_CHANNEL
-      console.log("Channel: ", channel)
       const msgs = this.channelMessages.get(channel)
       if(msgs){
-        console.log("Channel found: ", msgs)
         msgs.push(newMessage)
         this.channelMessages.set(channel, msgs)
         return
       }else{
         // es el primer mensaje, asi que tengo que crear la clave y crear el array con el primer elemento que sera el nuevo mensaje
-        console.log("Creating channel...")
         this.channelMessages.set(channel, [newMessage])
       }
     }
