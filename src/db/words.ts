@@ -94,7 +94,7 @@ export const words = {
     "Dota 2",
     "Call of Duty: Modern Warfare",
     "FIFA 24",
-    "Assassin’s Creed Valhalla",
+    "Assassins Creed Valhalla",
     "Dark Souls III",
     "Horizon Zero Dawn",
     "Resident Evil 4",
@@ -110,7 +110,7 @@ export const words = {
     "Resident Evil Village",
     "Bloodborne",
     "Sekiro: Shadows Die Twice",
-    "Marvel’s Spider-Man",
+    "Marvels Spider-Man",
     "Hades",
     "Dead by Daylight",
     "Stardew Valley",
@@ -223,7 +223,6 @@ export const words = {
     "Resfrío",
     "COVID-19",
     "Neumonía",
-    "Bronquitis",
     "Asma",
     "Diabetes",
     "Hipertensión",
@@ -233,7 +232,6 @@ export const words = {
     "Migraña",
     "Depresión",
     "Ansiedad",
-    "Artritis",
     "Osteoporosis",
     "Alergia",
     "Gastritis",
@@ -242,8 +240,6 @@ export const words = {
     "VIH/SIDA",
     "Tuberculosis",
     "Dengue",
-    "Zika",
-    "Chikungunya",
     "Malaria",
     "Parkinson",
     "Alzheimer",
@@ -340,6 +336,4 @@ export const words = {
     "Pala",
     "Cincel"
   ]
-
-
 }

@@ -39,7 +39,7 @@ export function onSubmitVote(submitVoteDto: SubmitVoteDto){
         const finalRoundGame = gameService.computeGameResults(game)
         // Le envio el resultado de la ronda a los jugadores si todos jugaron
         finalRoundGame.getPlayersAsList().forEach((player: Player) => {
-            player.socket.emit(GameEvents.ROUND_RESULT, {game: toGameDTO(finalRoundGame, player.name), roundResult: finalRoundGame.getLastRoundResult()})
+            player.socket?.emit(GameEvents.ROUND_RESULT, {game: toGameDTO(finalRoundGame, player.name), roundResult: finalRoundGame.getLastRoundResult()})
         })
 
         logger.info("Game ended")

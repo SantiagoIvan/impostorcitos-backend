@@ -4,9 +4,14 @@ export enum Topic {
     HOME_APPLIANCES = "Electrodomesticos",
     GAMES = "Juegos",
     MUSIC = "Musica",
-    ANIME_CHARACTERS = "PersonajesDeAnime",
     CLOTHES = "Ropa",
     SPORTS = "Deportes",
+    SPORT_ELEMENTS = "ElementosDeportivos",
+    ANIMALS = "Animales",
+    DISEASES = "Enfermedades",
+    FOOTBALL_PLAYERS = "JugadoresDeFutbol",
+    COUNNTRIES = "Paises",
+    TOOLS = "Herramientas",
     DEFAULT = "Anime"
 }
 

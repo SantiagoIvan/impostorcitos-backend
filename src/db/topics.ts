@@ -4,7 +4,12 @@ export const topics : string[] = [
     "Electrodomesticos",
     "Juegos",
     "Musica",
-    "Personajes de anime",
     "Ropa",
-    "Deportes"
+    "Deportes",
+    "ElementosDeportivos",
+    "Animales",
+    "Enfermedades",
+    "JugadoresDeFutbol",
+    "Paises",
+    "Herramientas"
 ]
