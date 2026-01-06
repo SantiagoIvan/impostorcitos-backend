@@ -2,6 +2,7 @@ import { Player, PlayerNotFoundError, Room, RoundResult, RoundResultFactory } fr
 import { Turn, getPlayersWithMostVotes } from '../../lib';
 import { transformSecondsToMS } from '../../lib';
 import { GamePhase, Move, Vote } from "../../domain"
+import { GENERAL_CHAT_CHANNEL } from '../..';
 
 export class Game {
   public readonly createdAt: Date = new Date();
@@ -174,6 +175,8 @@ export class Game {
   cleanup() {
     this.room.getPlayersAsList().forEach((player: Player) => {
       player.cleanUp(this)
+      player.socket.leave(this.id)
+      player.socket.join(GENERAL_CHAT_CHANNEL)
     })
   }
 

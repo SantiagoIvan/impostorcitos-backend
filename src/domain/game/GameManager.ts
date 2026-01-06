@@ -2,7 +2,7 @@
 import { Game, GameFactory, GamePhase, Player, RoundResultFactory } from "../";
 import { ConsoleLogger, ILogger } from "../../logger";
 import { IGameRepository, InMemoryGameRepository } from "../../repository";
-import { io } from "../..";
+import { GENERAL_CHAT_CHANNEL, io } from "../..";
 import { GameEvents } from "../../lib";
 import { toGameDTO } from "../../mappers";
 import { gameService } from "../../services";
@@ -69,6 +69,8 @@ class GameManager {
         game.abort()
         game.getPlayersAsList().forEach((player: Player) => {
             player.socket.emit(GameEvents.END_GAME, {game: toGameDTO(game, player.name), roundResult: game.getLastRoundResult()})
+            player.socket.leave(game.id)
+            player.socket.join(GENERAL_CHAT_CHANNEL)
         })
       }
     }catch(error: any){

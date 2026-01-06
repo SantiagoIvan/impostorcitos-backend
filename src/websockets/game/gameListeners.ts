@@ -1,4 +1,4 @@
-import { io } from "../.."
+import { GENERAL_CHAT_CHANNEL, io } from "../.."
 import { gameManager, GameNotFoundError, Player } from "../../domain"
 import { GameEvents, PlayerLeftGameDto, PlayerReadyDto, SubmitVoteDto, SubmitWordDto } from "../../lib"
 import { ConsoleLogger } from "../../logger"
@@ -41,6 +41,8 @@ export function onSubmitVote(submitVoteDto: SubmitVoteDto){
         finalRoundGame.getPlayersAsList().forEach((player: Player) => {
             player.socket.emit(GameEvents.ROUND_RESULT, {game: toGameDTO(finalRoundGame, player.name), roundResult: finalRoundGame.getLastRoundResult()})
         })
+
+        logger.info("Game ended")
     }catch(error: any){
         logger.error(error.message)
     }
