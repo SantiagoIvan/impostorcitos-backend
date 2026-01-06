@@ -66,7 +66,10 @@ class GameManager {
         // Emitir END Game.
         this.logger.info(`Abortando partida...`)
         game.cleanup()
-        gameService.updateGameStateToClient(game, GameEvents.END_GAME)
+        game.abort()
+        game.getPlayersAsList().forEach((player: Player) => {
+            player.socket.emit(GameEvents.END_GAME, {game: toGameDTO(game, player.name), roundResult: game.getLastRoundResult()})
+        })
       }
     }catch(error: any){
       this.logger.error(error.message)

@@ -3,8 +3,9 @@ import { ConsoleLogger } from "../../logger"
 import { toRoomDTO, toRoomDTOArray } from "../../mappers"
 import { gameService, roomService } from "../../services"
 import { io } from "../.."
-import { gameManager, Player, roomManager } from "../../domain"
+import { gameManager, Player, roomManager, UserNotFoundError } from "../../domain"
 import { registerGameEvents } from "../game"
+import { userManager } from "../../domain/user/UserManager"
 
 const logger = new ConsoleLogger("ROOM_LISTENERS")
 
@@ -32,6 +33,15 @@ export function onStartGame(roomId : string) {
         newGame.resetRoundTurnState()
         roomManager.removeRoom(roomId)
        
+        newGame.getPlayersAsList().forEach((player: Player) => {
+            const user = userManager.getUserByUsername(player.name)
+            if(!user) {
+                throw new UserNotFoundError(player.name)
+            }
+            user.setRoomId = ""
+            user.setGameId = newGame.id
+        })
+
         const rooms = toRoomDTOArray(roomManager.getRooms())
         io.emit(RoomEvents.LIST, rooms)
         gameService.updateGameStateToClient(newGame, RoomEvents.REDIRECT_TO_GAME)

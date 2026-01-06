@@ -1,10 +1,11 @@
 import { Socket, Server } from "socket.io"
 import { RoomEvents, JoinRoomDto, GameEvents, RoomDto } from "../../lib"
 import { toRoomDTO, toRoomDTOArray } from "../../mappers";
-import { roomManager, Player } from "../../domain";
+import { roomManager, Player, UserNotFoundError } from "../../domain";
 import { GENERAL_CHAT_CHANNEL } from "../..";
 import { ConsoleLogger } from "../../logger";
 import { onPlayerReady, onRoomCreate, onRoomReady, onStartGame } from "./room.listeners";
+import { userManager } from "../../domain/user/UserManager";
 
 const logger = new ConsoleLogger("ROOM_SERVICE")
 
@@ -38,8 +39,15 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     try{
       if(roomManager.isPlayerInRoom(incomingPlayer.username, incomingPlayer.roomId)) return
       const player = new Player(incomingPlayer.username, socket)
-      // Buscar al user por name y agregarle el roomId, sacarselo en el Leave. Cuando empieza el juego agregarle el gameIdy cuando termin se lo sacas
+
       const updatedRoom = roomManager.addPlayerToRoom(player, incomingPlayer.roomId)
+      
+      // Buscar al user por name y agregarle el roomId, sacarselo en el Leave.
+      const user = userManager.getUserByUsername(incomingPlayer.username)
+      if(!user) {
+        throw new UserNotFoundError(incomingPlayer.username)
+      }
+      user.setRoomId = incomingPlayer.roomId
   
       socket.leave(GENERAL_CHAT_CHANNEL)
       socket.join(incomingPlayer.roomId)
@@ -61,6 +69,13 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
     if(!roomManager.isPlayerInRoom(outcomingPlayer.username, outcomingPlayer.roomId)) return
     
     const updatedRoom = roomManager.removePlayerfromRoom(outcomingPlayer.username, outcomingPlayer.roomId)
+
+    const user = userManager.getUserByUsername(outcomingPlayer.username)
+    if(!user) {
+      throw new UserNotFoundError(outcomingPlayer.username)
+    }
+    user.setRoomId = ""
+
     socket.join(GENERAL_CHAT_CHANNEL)
     socket.leave(outcomingPlayer.roomId)
 

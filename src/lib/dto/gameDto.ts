@@ -1,4 +1,5 @@
-import { Move, Vote, Turn, GamePhase } from "../types";
+import { Turn } from "../types";
+import { GamePhase, Vote, Move } from "../../domain";
 import { RoomDto } from "./roomDto";
 
 export interface GameDto {
@@ -14,4 +15,5 @@ export interface GameDto {
     currentPhase: GamePhase
     currentRound: number
     secretWord?: string
+    aborted?: boolean
 }

@@ -3,7 +3,7 @@ import { io } from "../..";
 import { nextSeqUser } from "../../db";
 import { RoomEvents } from "../../lib";
 import { ConsoleLogger, ILogger } from "../../logger";
-import { toRoomDTOArray } from "../../mappers";
+import { toRoomDTO, toRoomDTOArray } from "../../mappers";
 import {  } from "../../repository";
 import { InMemoryUserRepository, IUserRepository } from "../../repository";
 import { UserNotFoundError } from "../errors";
@@ -58,7 +58,6 @@ class UserManager {
         this.logger.info("A player has left the game")
         socket?.removeAllListeners()
 
-        let playerName = ""
         // Obtengo al jugador del UserManager
         if(!user){
             this.logger.error(`User Not Found`)
@@ -68,16 +67,18 @@ class UserManager {
         this.logger.warn(`User ${user.username} has left the game`)
         // Me fijo si esta en una sala, para eliminarlo de ahi y volver a emitir el evento de lista a todos los clientes
         const roomId = user.getRoomId()
+
         if(roomId){
             const roomFound = roomManager.getRoomById(roomId)
             if(!roomFound) {
-            this.logger.error("Sala no encontrada")
-            return
+                this.logger.warn(`El jugador ${user.username} no estaba en ninguna sala`)
+                return
             }
             
-            this.logger.info(`El jugador ${playerName} estaba en la sala ${roomId}. Actualizando lista de salas a los clientes...`)
-            roomFound.removePlayer(playerName)
-            io.emit(RoomEvents.LIST, toRoomDTOArray(roomManager.getRooms()))
+            this.logger.info(`El jugador ${user.username} estaba en la sala ${roomId}. Actualizando lista de salas a los clientes...`)
+            roomFound.removePlayer(user.username)
+            console.log(roomFound)
+            io.emit(RoomEvents.USER_LEFT, toRoomDTO(roomFound))
             this.logger.info(`Lista actualizada en los clietes`)
         }
 
@@ -86,12 +87,12 @@ class UserManager {
         if(gameId){
             const gameFound = gameManager.getGameById(gameId)
             if(!gameFound) {
-            this.logger.error("Game no encontrada")
-            return
+                this.logger.error(`El jugador ${user.username} no estaba en ninguna partida`)
+                return
             }
 
-            this.logger.info(`Encontramos al jugador ${playerName} en ${gameId}, vamos a ver si sigue la partida y reiniciar la ronda o terminarla.`)
-            gameManager.handlePlayerDisconnected(playerName, gameFound)
+            this.logger.info(`Encontramos al jugador ${user.username} en ${gameId}, vamos a ver si sigue la partida y reiniciar la ronda o terminarla.`)
+            gameManager.handlePlayerDisconnected(user.username, gameFound)
         }
         userManager.removeUser(user.id)
         this.logger.info("Hasta siempre, soldado")

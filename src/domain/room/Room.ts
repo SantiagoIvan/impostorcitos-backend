@@ -27,7 +27,8 @@ export class Room{
         this.lastActivityAt = new Date()
     }
     removePlayer(playerName: string) : Room {
-        this.players.delete(playerName);
+        console.log(playerName)
+        console.log(this.players.delete(playerName));
         this.updateLastActivity()
         return this
     }

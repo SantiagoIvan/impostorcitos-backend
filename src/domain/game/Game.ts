@@ -1,4 +1,4 @@
-import { Player, PlayerNotFoundError, Room, RoundResult } from '../';
+import { Player, PlayerNotFoundError, Room, RoundResult, RoundResultFactory } from '../';
 import { Turn, getPlayersWithMostVotes } from '../../lib';
 import { transformSecondsToMS } from '../../lib';
 import { GamePhase, Move, Vote } from "../../domain"
@@ -12,6 +12,7 @@ export class Game {
   private impostorWonTheGame: boolean = false
   private currentRound: number = 1
   private currentPhase: GamePhase = GamePhase.PLAY
+  private aborted: boolean = false
 
   constructor(
     public readonly id: string,
@@ -38,6 +39,9 @@ export class Game {
   get getCurrentPhase() {
     return this.currentPhase
   }
+  get getAborted() {
+    return this.aborted
+  }
   get getCurrentRound() {
     return this.currentRound
   }
@@ -50,7 +54,11 @@ export class Game {
   set setCurrentRound(num: number){
     this.currentRound = num
   }
-
+  abort(){
+    this.currentPhase = GamePhase.ROUND_RESULT
+    this.aborted = true
+    this.addRoundResult(RoundResultFactory.createRoundResultDto(this, []))
+  }
   resetRoundTurnState(): void {
     this.room.players.forEach((p: Player) => {
       p.resetPlayerTurn()
