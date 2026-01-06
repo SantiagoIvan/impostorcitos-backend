@@ -22,6 +22,7 @@ export const CLEANUP_JOB_INTERVAL = parseInt(process.env.CLEANUP_JOB_INTERVAL ||
 export const ROOM_TTL = parseInt(process.env.ROOM_TTL || "300000")
 export const GAME_TTL = parseInt(process.env.GAME_TTL || "300000")
 export const MESSAGE_TTL = parseInt(process.env.MESSAGE_TTL || "300000")
+export const USER_TTL = parseInt(process.env.USER_TTL || "300000")
 const app = express();
 const logger = new ConsoleLogger("SERVER")
 

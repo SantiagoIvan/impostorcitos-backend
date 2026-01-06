@@ -1,5 +1,6 @@
-import { CLEANUP_JOB_INTERVAL, GAME_TTL, MESSAGE_TTL, ROOM_TTL } from "..";
-import { Game, gameManager, messageManager, Room, roomManager } from "../domain";
+import { CLEANUP_JOB_INTERVAL, GAME_TTL, MESSAGE_TTL, ROOM_TTL, USER_TTL } from "..";
+import { Game, gameManager, messageManager, Room, roomManager, User } from "../domain";
+import { userManager } from "../domain/user/UserManager";
 import { ConsoleLogger } from "../logger";
 
 const logger = new ConsoleLogger("CLEANUP")
@@ -8,6 +9,7 @@ export function startCleanupJobs() {
   startMessageCleanup();
   startRoomCleanup();
   startGameCleanup();
+  startUserCleanup();
 }
 
 function startMessageCleanup() {
@@ -48,5 +50,20 @@ function startGameCleanup() {
         .getAll()
         .filter((game: Game) => game.isIdle(GAME_TTL))
         .forEach((game: Game) => gameManager.endGame(game.id))
+  }, CLEANUP_JOB_INTERVAL);
+}
+
+function startUserCleanup() {
+  setInterval(() => {
+    // Abortar games mas antiguos
+    logger.warn(`Cleaup Users Job started. USER_TTL set to ${USER_TTL}`)
+    userManager
+        .getUsers()
+        .filter((us: User) => us.isIdle(USER_TTL))
+        .forEach((us: User) => {
+          us.getSocket()?.emit("abort_session")
+          console.log("Removing user", us)
+          userManager.removeUser(us.id)
+        })
   }, CLEANUP_JOB_INTERVAL);
 }

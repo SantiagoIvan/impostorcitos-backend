@@ -1,7 +1,8 @@
 import { CreateMessageDto, MessageEvents } from "../../lib"
 import { ConsoleLogger } from "../../logger"
 import { GENERAL_CHAT_CHANNEL, io, MAX_MESSAGE_LENGTH } from "../.."
-import { gameManager, messageManager } from "../../domain"
+import { gameManager, messageManager, UserNotFoundError } from "../../domain"
+import { userManager } from "../../domain/user/UserManager"
 
 const logger = new ConsoleLogger("MESSAGE_LISTENER")
 
@@ -9,6 +10,11 @@ export function onMessageCreate(msgDto : CreateMessageDto){
   try{
     msgDto.text = msgDto.text.substring(0, MAX_MESSAGE_LENGTH)
     const newMessage = messageManager.addMessage(msgDto)
+    const user = userManager.getUserByUsername(msgDto.sender)
+    if(!user){
+      throw new UserNotFoundError(msgDto.sender)
+    }
+    user.updateLastActivity()
     if(!msgDto.roomId){ // Estas en lobby, chat general
       io.to(GENERAL_CHAT_CHANNEL).emit(MessageEvents.CREATED, newMessage)
       return

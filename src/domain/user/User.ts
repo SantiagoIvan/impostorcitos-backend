@@ -4,6 +4,7 @@ export class User{
     constructor(
         public readonly id: string,
         public readonly username: string,
+        private lastActivity: Date = new Date(),
         private socket?: Socket,
         private roomId?: string,
         private gameId?: string
@@ -29,5 +30,11 @@ export class User{
     }
     set setGameId(id: string){
         this.gameId = id
+    }
+    updateLastActivity(){
+        this.lastActivity = new Date()
+    }
+    isIdle(maxIdleMs: number): boolean { // la idea es volar los que queden huerfanos
+        return Date.now() - this.lastActivity.getTime() > maxIdleMs
     }
 }

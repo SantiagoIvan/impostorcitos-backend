@@ -5,7 +5,6 @@ import { IGameRepository, InMemoryGameRepository } from "../../repository";
 import { GENERAL_CHAT_CHANNEL, io } from "../..";
 import { GameEvents } from "../../lib";
 import { toGameDTO } from "../../mappers";
-import { gameService } from "../../services";
 
 class GameManager {
 
@@ -59,7 +58,7 @@ class GameManager {
         const gameWithRoundResult = playerLeftRoundResult(playerName, game)
         gameWithRoundResult.resetRoundTurnState()
         gameWithRoundResult.getPlayersAsList().forEach((player: Player) => {
-            player.socket.emit(GameEvents.ROUND_RESULT, {game: toGameDTO(gameWithRoundResult, player.name), roundResult: gameWithRoundResult.getLastRoundResult()})
+            player.socket?.emit(GameEvents.ROUND_RESULT, {game: toGameDTO(gameWithRoundResult, player.name), roundResult: gameWithRoundResult.getLastRoundResult()})
         })
         
       }else{
@@ -68,9 +67,9 @@ class GameManager {
         game.cleanup()
         game.abort()
         game.getPlayersAsList().forEach((player: Player) => {
-            player.socket.emit(GameEvents.END_GAME, {game: toGameDTO(game, player.name), roundResult: game.getLastRoundResult()})
-            player.socket.leave(game.id)
-            player.socket.join(GENERAL_CHAT_CHANNEL)
+            player.socket?.emit(GameEvents.END_GAME, {game: toGameDTO(game, player.name), roundResult: game.getLastRoundResult()})
+            player.socket?.leave(game.id)
+            player.socket?.join(GENERAL_CHAT_CHANNEL)
         })
       }
     }catch(error: any){

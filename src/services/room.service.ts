@@ -20,8 +20,8 @@ class RoomService {
         return roomManager.togglePlayerReadyInRoom(username, roomId)
     }
     notifyAbortRoomToPlayer(player: Player) {
-        this.logger.warn("Game aborted. Notifying to players...")
-        player.socket.emit(RoomEvents.ABORT_ROOM)
+        this.logger.warn("Room aborted. Notifying to players...")
+        player.socket?.emit(RoomEvents.ABORT_ROOM)
         io.emit(RoomEvents.LIST, toRoomDTOArray(roomManager.getRooms()))
     }
 }

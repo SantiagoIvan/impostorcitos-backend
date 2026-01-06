@@ -50,6 +50,8 @@ export function onStartGame(roomId : string) {
     }
 }
 
+
+// Esto es para sincronizar a los clietes cuando empieza la partida que aparece el modal con la palabra secreta o el msg SOS EL IMPOSTOR
 export function onPlayerReady({username, gameId}:{username: string, gameId: string}){
     try{
         const game = gameManager.getGameById(gameId)
@@ -64,8 +66,8 @@ export function onPlayerReady({username, gameId}:{username: string, gameId: stri
           game.resetRoundTurnState()
           game.startTurn()
           game.getPlayersAsList().forEach((p: Player) => {
-            p.socket.join(game.id)
-            registerGameEvents(p.socket, io)
+            p.socket?.join(game.id)
+            registerGameEvents(p.socket)
           })
           gameService.updateGameStateToClient(game, GameEvents.START_ROUND)
         }

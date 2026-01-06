@@ -29,7 +29,7 @@ class GameService {
     updateGameStateToClient(game: Game, event: RoomEvents | GameEvents) {
         game.getPlayersAsList().forEach((player: Player) => {
             const gameDto = toGameDTO(game, player.name)
-            player.socket.emit(event, gameDto)
+            player.socket?.emit(event, gameDto)
         })
     }
 
@@ -43,6 +43,7 @@ class GameService {
         // Creacio de la Jugada
         const move = MoveFactory.createMove(submitWordDto, game.getCurrentRound)
         game.addMove(move)
+        game.updateLastActivity()
         player.markHasPlayed()
         this.logger.info(`${player.name} has successfully played `, move.word)
 
@@ -77,6 +78,7 @@ class GameService {
         this.logger.info(`End of discussion`)
         game.setCurrentPhase = GamePhase.VOTE
         game.resetRoundTurnState()
+        game.updateLastActivity()
         game.startTurn() // Dejo el turno preparado para la siguiente fase
         return game
     }
@@ -90,6 +92,7 @@ class GameService {
         // Creo el voto y lo agrego a la lista
         const vote = VoteFactory.createVote(submitVoteDto, game.getCurrentRound)
         game.addVote(vote)
+        game.updateLastActivity()
         player.markHasPlayed()
         this.logger.info(`${player.name} has voted `, vote.votedPlayer)
 
@@ -131,6 +134,7 @@ class GameService {
         }
         
         player.markHasPlayed()
+        game.updateLastActivity()
         if(!game.allPlayed()) return
         
         game.setCurrentPhase = GamePhase.PLAY

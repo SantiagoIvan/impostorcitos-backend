@@ -38,15 +38,16 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   socket.on(RoomEvents.JOIN, (incomingPlayer : JoinRoomDto) => {
     try{
       if(roomManager.isPlayerInRoom(incomingPlayer.username, incomingPlayer.roomId)) return
-      const player = new Player(incomingPlayer.username, socket)
-
-      const updatedRoom = roomManager.addPlayerToRoom(player, incomingPlayer.roomId)
-      
-      // Buscar al user por name y agregarle el roomId, sacarselo en el Leave.
       const user = userManager.getUserByUsername(incomingPlayer.username)
       if(!user) {
         throw new UserNotFoundError(incomingPlayer.username)
       }
+
+      const player = new Player(incomingPlayer.username, user)
+
+      const updatedRoom = roomManager.addPlayerToRoom(player, incomingPlayer.roomId)
+      
+      // Buscar al user por name y agregarle el roomId, sacarselo en el Leave.
       user.setRoomId = incomingPlayer.roomId
   
       socket.leave(GENERAL_CHAT_CHANNEL)

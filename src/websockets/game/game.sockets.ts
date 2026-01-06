@@ -1,14 +1,12 @@
-import { Server, Socket } from "socket.io";
-import { GameEvents, SubmitWordDto, SubmitVoteDto, PlayerReadyDto } from "../../lib";
-import { gameService } from "../../services";
-import { Game, gameManager, GameNotFoundError, GamePhase, Player, PlayerCantPlay, PlayerNotFoundError, VoteFactory, MoveFactory, RoundResultFactory } from "../../domain";
+import {  Socket } from "socket.io";
+import { GameEvents } from "../../lib";
 import { ConsoleLogger } from "../../logger";
-import { toGameDTO } from "../../mappers";
 import { onDiscussionTurnEnd, onNextRound, onSubmitVote, onSubmitWord, onPlayerDisconnect } from "./gameListeners";
 
 const logger = new ConsoleLogger("GAME_SOCKETS")
 
-export const registerGameEvents = (socket: Socket, io: Server) => {
+export const registerGameEvents = (socket?: Socket) => {
+    if(!socket) return
     /*
     *** GameEvents.Submit_Word
     - Verificamos que la fase del juego sea Play y que el jugador pueda jugar (no haya jugado y este vivo).

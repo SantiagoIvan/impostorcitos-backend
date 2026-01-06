@@ -55,6 +55,7 @@ export class RoomManager {
         if(room){
             room.addPlayer(player)
             this.roomRepository.save(room)
+            room.updateLastActivity()
             this.logger.info(`Se ha unido ${player.name} a la sala ${room.id}: Cantidad de jugadores: ${room.getPlayerCount()}`, room.players)
             return room
         }
@@ -64,6 +65,7 @@ export class RoomManager {
         const room = this.roomRepository.getById(roomId)
         if(room){
             room.players.delete(playerName)
+            room.updateLastActivity()
             this.logger.info(`${playerName} ha dejado la sala ${room.id}: Cantidad de jugadores: ${room.getPlayerCount()}`, room)
             return room
         }
@@ -77,6 +79,7 @@ export class RoomManager {
         if(!targetPlayer) throw new Error(`[RoomManager] Jugador inexistente en la sala ${roomId}`) // mejorar
         
         targetPlayer.toogleIsReady()
+        room.updateLastActivity()
         this.logger.info(`${playerName} esta listo.`, room)
         return room
     }

@@ -175,8 +175,8 @@ export class Game {
   cleanup() {
     this.room.getPlayersAsList().forEach((player: Player) => {
       player.cleanUp(this)
-      player.socket.leave(this.id)
-      player.socket.join(GENERAL_CHAT_CHANNEL)
+      player.socket?.leave(this.id)
+      player.socket?.join(GENERAL_CHAT_CHANNEL)
     })
   }
 

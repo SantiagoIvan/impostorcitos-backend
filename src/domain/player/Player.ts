@@ -2,6 +2,7 @@ import { Socket } from 'socket.io';
 import { Game } from '../game';
 import { GameEvents } from '../../lib';
 import { onDiscussionTurnEnd, onNextRound, onSubmitVote, onSubmitWord } from '../../websockets';
+import { User } from '../user';
 
 export class Player {
   private isAlive: boolean = true
@@ -11,7 +12,7 @@ export class Player {
 
   constructor(
     public readonly name: string,
-    public readonly socket: Socket,
+    public readonly user: User,
   ){}
   
   get alive(): boolean {
@@ -32,6 +33,9 @@ export class Player {
   set setHasPlayed(flag : boolean){
     this.hasPlayed = flag
   }
+  get socket() {
+    return this.user.getSocket()
+  }
   isPlayerAlive() : boolean {
     return this.isAlive === true
   }
@@ -40,6 +44,7 @@ export class Player {
   }
   markSkipPhase(){
     this.skipPhase = true
+    this.user.updateLastActivity()
   }
   disconnect(game: Game) {
     this.die()
@@ -48,6 +53,7 @@ export class Player {
   }
   toogleIsReady(){
     this.isReady = !this.isReady
+    this.user.updateLastActivity()
   }
   resetPlayerTurn() {
     this.hasPlayed = false
@@ -56,26 +62,32 @@ export class Player {
   }
   setIsReady(flag: boolean) {
     this.isReady = flag
+    this.user.updateLastActivity()
   }
   die(){
     this.isAlive = false
+    this.user.updateLastActivity()
   }
   joinChannel(channel: string){
-    this.socket.join(channel)
+    this.socket?.join(channel)
+    this.user.updateLastActivity()
   }
   leaveChannel(channel: string){
-    this.socket.leave(channel)
+    this.socket?.leave(channel)
+    this.user.updateLastActivity()
   }
   markHasPlayed(){
     this.hasPlayed = true
+    this.user.updateLastActivity()
   }
   cleanUp(game: Game){
-    this.socket.leave(game.id)
-    this.socket.leave(`${game.id}:dead`)
-    this.socket.leave(game.room.id)
-    this.socket.off(GameEvents.SUBMIT_WORD, onSubmitWord)
-    this.socket.off(GameEvents.DISCUSSION_TURN_END, onDiscussionTurnEnd)
-    this.socket.off(GameEvents.SUBMIT_VOTE, onSubmitVote)
-    this.socket.off(GameEvents.NEXT_ROUND, onNextRound)
+    this.user.setGameId = ""
+    this.socket?.leave(game.id)
+    this.socket?.leave(`${game.id}:dead`)
+    this.socket?.leave(game.room.id)
+    this.socket?.off(GameEvents.SUBMIT_WORD, onSubmitWord)
+    this.socket?.off(GameEvents.DISCUSSION_TURN_END, onDiscussionTurnEnd)
+    this.socket?.off(GameEvents.SUBMIT_VOTE, onSubmitVote)
+    this.socket?.off(GameEvents.NEXT_ROUND, onNextRound)
   }
 }
