@@ -1,0 +1,1 @@
+export type RedisHash = Record<string, string>;
