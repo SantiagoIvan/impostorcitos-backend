@@ -15,9 +15,16 @@ export class Room{
         public readonly moveTime: number,
         public readonly maxPlayers: number,
         private lastActivityAt: Date,
+        private randomTopic: boolean = false,
+        private topic: string,
         private password?: string
     ){}
-
+    getRandomTopic(): boolean {
+        return this.randomTopic
+    }
+    getTopic(): string {
+        return this.topic
+    }
     get lastActivity(): Date {
         return this.lastActivityAt
     }

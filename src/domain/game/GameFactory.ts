@@ -12,13 +12,13 @@ export const GameFactory = {
     createGame: (roomId: string) : Game => {
         const room = roomManager.getRoomById(roomId)
         if(!room) {
-        logger.error(`Unable to create Game. Room not found`)
-        throw new Error("[GAME_MANAGER] Unable to create Game. Room not found")
+            logger.error(`Unable to create Game. Room not found`)
+            throw new Error("[GAME_MANAGER] Unable to create Game. Room not found")
         } // mejorar y estandarizar los errores
         const playersList = [...room.players.values()]
 
-        const randomTopic = RandomGeneratorService.generateRandomTopic()
-        const randomWord = RandomGeneratorService.generateRandomWordFromTopic(randomTopic).toString()
+        const topicSelected = room.getRandomTopic()? RandomGeneratorService.generateRandomTopic() : room.getTopic()
+        const randomWord = RandomGeneratorService.generateRandomWordFromTopic(topicSelected).toString()
         const impostor = RandomGeneratorService.generateRandomPlayer(playersList)
         const randomOrder = shuffle(playersList.map((player: Player) => player.name))
         
@@ -26,7 +26,7 @@ export const GameFactory = {
             nextSeqGame(),
             new Date(),
             room,
-            randomTopic,
+            topicSelected,
             impostor,
             randomWord,
             randomOrder,

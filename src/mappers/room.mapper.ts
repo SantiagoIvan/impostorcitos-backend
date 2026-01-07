@@ -14,7 +14,9 @@ export function toRoomDTO(room: Room): RoomDto {
     voteTime: room.voteTime,
     moveTime: room.moveTime,
     maxPlayers: room.maxPlayers,
-    players: [...room.players.values()].map((player: Player) => toPlayerDTO(player))
+    players: [...room.players.values()].map((player: Player) => toPlayerDTO(player)),
+    randomTopic: room.getRandomTopic(),
+    topic: room.getTopic() || ""
   };
 }
 

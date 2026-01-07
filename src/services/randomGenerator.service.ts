@@ -10,6 +10,7 @@ export const RandomGeneratorService = {
         return topics[rnd]
     },
     generateRandomWordFromTopic: (topic: string): string => {
+
         const wordsFromTopic = words[parseTopic(topic)]
         const rnd = randomInt(0, wordsFromTopic.length)
         return wordsFromTopic[rnd]

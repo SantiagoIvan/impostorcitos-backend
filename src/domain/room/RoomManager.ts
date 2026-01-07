@@ -26,9 +26,13 @@ export class RoomManager {
             roomDto.voteTime,
             roomDto.moveTime,
             roomDto.maxPlayers,
-            new Date()
+            new Date(),
+            roomDto.randomTopic,
+            roomDto.topic,
+            roomDto.password
         )
         this.roomRepository.save(newRoom)
+        console.log("Room created: ", newRoom)
         this.logger.info("Room has been created successfully: ", newRoom)
         return newRoom
     }

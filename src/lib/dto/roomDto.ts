@@ -13,4 +13,6 @@ export interface RoomDto {
     moveTime: number // tiempo para hacer tu jugada: elegir palabra
     maxPlayers: number
     players: PlayerDto[]
+    topic: string
+    randomTopic: boolean
 }
