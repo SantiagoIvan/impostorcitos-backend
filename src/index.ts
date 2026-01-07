@@ -11,7 +11,6 @@ import authRoutes from "./routes/auth.routes"
 import roomRoutes from "./routes/room.routes"
 import { errorMiddleware } from "./middleware/error.middleware";
 import { userManager } from "./domain/user/UserManager";
-import redis from "./config/redis";
 
 const PORT = process.env.PORT || 4000
 export const GENERAL_CHAT_CHANNEL = process.env.GENERAL_CHAT_CHANNEL || "GENERAL"
@@ -77,11 +76,3 @@ io.on(SocketEvents.CONNECTION, async (socket) => {
 });
 
 startCleanupJobs()
-
-async function testRedis() {
-  await redis.set("test", "ok", "EX", 30);
-  const value = await redis.get("test");
-  console.log("Redis test:", value);
-}
-
-testRedis();
