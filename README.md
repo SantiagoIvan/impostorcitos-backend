@@ -8,8 +8,3 @@ Backend para el juego impostorcitos.
 npm install
 ```
 
-## Para levantar Redis Local
-
-```bash
-docker run -d -p 6379:6379 --name redis-local redis:7
-```

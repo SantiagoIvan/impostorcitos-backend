@@ -31,7 +31,7 @@ export function onDiscussionTurnEnd({username,gameId}:PlayerReadyDto){
 export function onSubmitVote(submitVoteDto: SubmitVoteDto){
     try{
         const game = gameService.vote(submitVoteDto)
-        
+        logger.info(`Game ${submitVoteDto.gameId}: ${submitVoteDto.username} has voted for ${submitVoteDto.targetPlayer}`)
         io.to(game.id).emit(GameEvents.VOTE_SUBMITTED, toVoteArrayDTO(game.votes))
         
         if(!game.allPlayed()) return
