@@ -4,7 +4,7 @@ import { toRoomDTO, toRoomDTOArray } from "../../mappers";
 import { roomManager, Player, UserNotFoundError } from "../../domain";
 import { GENERAL_CHAT_CHANNEL } from "../..";
 import { ConsoleLogger } from "../../logger";
-import { onPlayerReady, onRoomCreate, onRoomReady, onStartGame } from "./room.listeners";
+import { onPlayerReady, onRoomCreate, onRoomReady, onStartGame, onUpdateTopic } from "./room.listeners";
 import { userManager } from "../../domain/user/UserManager";
 
 const logger = new ConsoleLogger("ROOM_SERVICE")
@@ -109,4 +109,12 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   - Emito evento para comenzar a jugar
   */
   socket.on(GameEvents.PLAYER_READY, onPlayerReady)
+
+
+  /*
+  *** RoomEvents.UPDATE_TOPIC ***
+  - Para cuando en la sala de espera queres cambiar el topic.
+  - Emito evento TOPIC_UPDATED a los clientes del room para que se enteren y actualicen ese room
+  */
+  socket.on(RoomEvents.UPDATE_TOPIC, onUpdateTopic)
 }

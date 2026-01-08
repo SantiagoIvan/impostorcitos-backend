@@ -25,6 +25,12 @@ export class Room{
     getTopic(): string {
         return this.topic
     }
+    setRandomTopic(flag: boolean) {
+        this.randomTopic = flag
+    }
+    setTopic(newTopic: string){
+        this.topic = newTopic
+    }
     get lastActivity(): Date {
         return this.lastActivityAt
     }

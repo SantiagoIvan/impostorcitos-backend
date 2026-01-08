@@ -1,9 +1,9 @@
-import { CreateRoomDto, GameEvents, JoinRoomDto, RoomEvents } from "../../lib"
+import { CreateRoomDto, GameEvents, JoinRoomDto, RoomEvents, UpdateTopicDto } from "../../lib"
 import { ConsoleLogger } from "../../logger"
 import { toRoomDTO, toRoomDTOArray } from "../../mappers"
 import { gameService, roomService } from "../../services"
 import { io } from "../.."
-import { gameManager, Player, roomManager, UserNotFoundError } from "../../domain"
+import { gameManager, Player, roomManager, RoomNotFoundError, UserNotFoundError } from "../../domain"
 import { registerGameEvents } from "../game"
 import { userManager } from "../../domain/user/UserManager"
 
@@ -73,5 +73,23 @@ export function onPlayerReady({username, gameId}:{username: string, gameId: stri
         }
     }catch(error: any){
         logger.error(error.message)
+    }
+  }
+
+  export function onUpdateTopic({roomId, newTopic, randomFlag} : UpdateTopicDto){
+    try{
+        logger.info(`Sala ${roomId} - Actualizando topico a ${newTopic} con random flag ${randomFlag}`)
+        const room = roomManager.getRoomById(roomId)
+        if(!room) throw new RoomNotFoundError(roomId)
+
+        room.setRandomTopic(randomFlag)
+        if(!randomFlag && newTopic) {
+            room.setTopic(newTopic)
+        }
+        
+        console.log("updated room: ", room)
+        io.to(roomId).emit(RoomEvents.UPDATED_TOPIC, toRoomDTO(room))
+    }catch(e){
+        logger.error("Error actualizando topico")
     }
   }
