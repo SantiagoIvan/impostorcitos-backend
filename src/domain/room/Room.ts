@@ -19,6 +19,9 @@ export class Room{
         private topic: string,
         private password?: string
     ){}
+    getPassword() {
+        return this.password
+    }
     getRandomTopic(): boolean {
         return this.randomTopic
     }
@@ -53,10 +56,7 @@ export class Room{
         return this.password === passwordAttempt;
     }
 
-    addPlayer(player: Player, passwordAttempt?: string): void {
-        if (!this.canJoin(passwordAttempt)) {
-            throw new Error("Invalid room password");
-        }
+    addPlayer(player: Player): void {
         this.players.set(player.name, player);
         this.updateLastActivity()
     }

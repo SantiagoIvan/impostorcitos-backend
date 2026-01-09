@@ -9,9 +9,11 @@ import { ConsoleLogger } from "./logger";
 import { startCleanupJobs } from "./jobs";
 import authRoutes from "./routes/auth.routes"
 import roomRoutes from "./routes/room.routes"
+import pingRoutes from "./routes/ping.route"
 import { errorMiddleware } from "./middleware/error.middleware";
 import { userManager } from "./domain/user/UserManager";
 import { userService } from "./services";
+import { FileLogger } from "./logger/FileLogger";
 
 const PORT = process.env.PORT || 4000
 export const GENERAL_CHAT_CHANNEL = process.env.GENERAL_CHAT_CHANNEL || "GENERAL"
@@ -23,7 +25,7 @@ export const GAME_TTL = parseInt(process.env.GAME_TTL || "300000")
 export const MESSAGE_TTL = parseInt(process.env.MESSAGE_TTL || "300000")
 export const USER_TTL = parseInt(process.env.USER_TTL || "300000")
 const app = express();
-const logger = new ConsoleLogger("SERVER")
+const logger = new FileLogger("SERVER")
 
 app.use(cors({
     origin: "*",
@@ -33,6 +35,7 @@ app.use(cors({
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/room", roomRoutes)
+app.use("/api/ping", pingRoutes)
 app.use(errorMiddleware);
 
 const server = http.createServer(app);
@@ -78,4 +81,4 @@ io.on(SocketEvents.CONNECTION, (socket) => {
   })
 });
 
-//startCleanupJobs()
+startCleanupJobs()

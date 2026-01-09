@@ -55,14 +55,14 @@ export class RoomManager {
     }
     addPlayerToRoom(player: Player, roomId: string) : Room {
         const room = this.roomRepository.getById(roomId)
-        if(room){
-            room.addPlayer(player)
-            this.roomRepository.save(room)
-            room.updateLastActivity()
-            this.logger.info(`Se ha unido ${player.name} a la sala ${room.id}: Cantidad de jugadores: ${room.getPlayerCount()}`, room.players)
-            return room
-        }
-        throw new Error(`[RoomManager] Sala ${roomId} inexistente`) // mejorar
+        if(!room) throw new Error(`[RoomManager] Sala ${roomId} inexistente`) // mejorar
+        
+        room.addPlayer(player)
+        this.roomRepository.save(room)
+        room.updateLastActivity()
+        this.logger.info(`Se ha unido ${player.name} a la sala ${room.id}: Cantidad de jugadores: ${room.getPlayerCount()}`, room.players)
+        return room
+        
     }
     removePlayerfromRoom(playerName: string, roomId: string): Room {
         const room = this.roomRepository.getById(roomId)
