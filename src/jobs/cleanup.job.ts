@@ -48,7 +48,7 @@ function startGameCleanup() {
     logger.warn(`Cleaup Games Job started. GAME_TTL set to ${GAME_TTL}`)
     gameManager
         .getAll()
-        .filter((game: Game) => game.isIdle(GAME_TTL) || game.getAborted || game.getLastRoundResult().winner)
+        .filter((game: Game) => game.isIdle(GAME_TTL) || game.getAborted || game.getLastRoundResult()?.winner)
         .forEach((game: Game) => gameManager.endGame(game.id))
   }, CLEANUP_JOB_INTERVAL);
 }
