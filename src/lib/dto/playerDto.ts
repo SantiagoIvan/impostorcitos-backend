@@ -4,4 +4,5 @@ export interface PlayerDto {
     isAlive: boolean
     skipPhase: boolean
     hasPlayed: boolean
+    isConnected: boolean
 }

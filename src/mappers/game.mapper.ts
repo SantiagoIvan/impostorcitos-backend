@@ -8,14 +8,15 @@ export function toGameDTO(game: Game, clientName: string | undefined = undefined
     id: game.id,
     room: toRoomDTO(game.room),
     topic: game.topic,
-    moves: game.moves,
-    votes: toVoteArrayDTO(game.votes),
-    impostor: clientName === game.impostor,
+    moves: game.getMoves(),
+    votes: toVoteArrayDTO(game.getVotes()),
+    impostor: clientName === game.getImpostor(),
     impostorWonTheGame: game.impostorWon,
     currentTurn: game.getCurrentTurn,
     nextTurnIndexPlayer: game.getNextTurnIndexPlayer,
     currentPhase: game.getCurrentPhase,
     currentRound: game.getCurrentRound,
-    secretWord: clientName!==game.impostor? game.secretWord : undefined
+    secretWord: clientName!==game.getImpostor()? game.getSecretWord() : undefined,
+    aborted: game.getAborted
   };
 }

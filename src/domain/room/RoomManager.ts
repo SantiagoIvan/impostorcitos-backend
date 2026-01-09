@@ -28,11 +28,10 @@ export class RoomManager {
             roomDto.maxPlayers,
             new Date(),
             roomDto.randomTopic,
-            roomDto.topic,
+            roomDto.topic || "",
             roomDto.password
         )
         this.roomRepository.save(newRoom)
-        console.log("Room created: ", newRoom)
         this.logger.info("Room has been created successfully: ", newRoom)
         return newRoom
     }

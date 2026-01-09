@@ -1,6 +1,7 @@
 import { UserNotFoundError } from "../domain";
 import { UserAlreadyExistsError } from "../domain/errors/UserAlreadyExists";
 import { userManager } from "../domain/user/UserManager";
+import { userService } from "./user.service";
 
 interface LoginResponse {
   user: {
@@ -35,8 +36,7 @@ export const logoutUser = async (
   if (!user) {
     throw new UserNotFoundError(username);
   }
-  console.log("here")
-  userManager.handleDisconnect(user)
+  userService.handleDisconnect(user)
   
   return {
     user: {

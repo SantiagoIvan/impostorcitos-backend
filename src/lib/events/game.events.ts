@@ -12,5 +12,6 @@ export enum GameEvents {
     END_GAME = "game:end_game", // SI EL EL EXECUTED PLAYER ES EL IMPOSTOR, EMITE ESTE
     NEXT_ROUND = "game:next_round",
     LEAVE_GAME = "game:leave_game",
-    PLAYER_LEFT_GAME = "game:player_left_game"
+    PLAYER_LEFT_GAME = "game:player_left_game",
+    RESTART = "game:restart"
 }

@@ -1,7 +1,7 @@
 import {  Socket } from "socket.io";
 import { GameEvents } from "../../lib";
 import { ConsoleLogger } from "../../logger";
-import { onDiscussionTurnEnd, onNextRound, onSubmitVote, onSubmitWord, onPlayerDisconnect } from "./gameListeners";
+import { onDiscussionTurnEnd, onNextRound, onSubmitVote, onSubmitWord, onPlayerDisconnect, onRestart } from "./gameListeners";
 
 const logger = new ConsoleLogger("GAME_SOCKETS")
 
@@ -69,4 +69,14 @@ export const registerGameEvents = (socket?: Socket) => {
     - Si es asi, se resetea la ronda, disparando a todo el canal un START_ROUND y reconfigurando el turno
     */
     socket.on(GameEvents.LEAVE_GAME, onPlayerDisconnect)
+
+
+    /*
+    *** GameEvents.RESTART
+    - Se ejecuta cuando el usuario admin, al finalizar la partida, hace click en Volver a jugar y luego elige topico
+    - Se reconfigura la partida 
+    - Si alguno se desconecta, no va a ser tenido en cuenta porque se lo marca offline. Solo juegan quienes le dieron click a Volver a jugar.
+    - Se empieza de nuevo enviando un START_ROUND
+    */
+    socket.on(GameEvents.RESTART, onRestart)
 }

@@ -30,7 +30,7 @@ export function onRoomReady(userReady: JoinRoomDto){
 export function onStartGame(roomId : string) {
     try{
         const newGame = gameManager.createGame(roomId)
-        newGame.resetRoundTurnState()
+        newGame.resetPlayersState()
         roomManager.removeRoom(roomId)
        
         newGame.getPlayersAsList().forEach((player: Player) => {
@@ -63,7 +63,7 @@ export function onPlayerReady({username, gameId}:{username: string, gameId: stri
     
         found.setIsReady(true)
         if(game.allReady()) {
-          game.resetRoundTurnState()
+          game.resetPlayersState()
           game.startTurn()
           game.getPlayersAsList().forEach((p: Player) => {
             p.socket?.join(game.id)

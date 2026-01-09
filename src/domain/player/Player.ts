@@ -3,18 +3,25 @@ import { Game } from '../game';
 import { GameEvents } from '../../lib';
 import { onDiscussionTurnEnd, onNextRound, onSubmitVote, onSubmitWord } from '../../websockets';
 import { User } from '../user';
+import { GENERAL_CHAT_CHANNEL } from '../..';
 
 export class Player {
   private isAlive: boolean = true
   private isReady: boolean = false
   private skipPhase: boolean = false
   private hasPlayed: boolean = false
+  private isConnected: boolean = true
 
   constructor(
     public readonly name: string,
     public readonly user: User,
   ){}
-  
+  get connected(){
+    return this.isConnected
+  }
+  set connected(flag: boolean){
+    this.isConnected = flag
+  }
   get alive(): boolean {
     return this.isAlive
   }
@@ -39,23 +46,28 @@ export class Player {
   isPlayerAlive() : boolean {
     return this.isAlive === true
   }
+
+  revive() {
+    this.isAlive = true
+  }
+
   canPlay() : boolean {
-    return this.alive && !this.hasPlayed && !this.skipPhase
+    return this.alive && !this.hasPlayed && !this.skipPhase && this.isConnected
   }
   markSkipPhase(){
     this.skipPhase = true
     this.user.updateLastActivity()
   }
   disconnect(game: Game) {
-    this.die()
-    this.cleanUp(game)
-    console.log("jugador muerto", this)
+    this.isConnected = false
+    this.cleanUpGameListeners(game)
+    console.log("jugador Desconectado", this)
   }
   toogleIsReady(){
     this.isReady = !this.isReady
     this.user.updateLastActivity()
   }
-  resetPlayerTurn() {
+  resetPlayerState() {
     this.hasPlayed = false
     this.skipPhase = false
     this.isReady = false
@@ -80,11 +92,12 @@ export class Player {
     this.hasPlayed = true
     this.user.updateLastActivity()
   }
-  cleanUp(game: Game){
+  cleanUpGameListeners(game: Game){
     this.user.setGameId = ""
     this.socket?.leave(game.id)
     this.socket?.leave(`${game.id}:dead`)
     this.socket?.leave(game.room.id)
+    this.socket?.join(GENERAL_CHAT_CHANNEL)
     this.socket?.off(GameEvents.SUBMIT_WORD, onSubmitWord)
     this.socket?.off(GameEvents.DISCUSSION_TURN_END, onDiscussionTurnEnd)
     this.socket?.off(GameEvents.SUBMIT_VOTE, onSubmitVote)

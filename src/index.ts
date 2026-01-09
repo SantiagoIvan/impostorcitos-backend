@@ -11,6 +11,7 @@ import authRoutes from "./routes/auth.routes"
 import roomRoutes from "./routes/room.routes"
 import { errorMiddleware } from "./middleware/error.middleware";
 import { userManager } from "./domain/user/UserManager";
+import { userService } from "./services";
 
 const PORT = process.env.PORT || 4000
 export const GENERAL_CHAT_CHANNEL = process.env.GENERAL_CHAT_CHANNEL || "GENERAL"
@@ -46,33 +47,35 @@ server.listen(PORT, () => {
   logger.info(`Socket.IO server escuchando en puerto ${PORT}`);
 });
 
-io.on(SocketEvents.CONNECTION, async (socket) => {
+io.on(SocketEvents.CONNECTION, (socket) => {
   const {username} = socket.handshake.auth 
   // Esto solamente ocurre durante el handshake
   // En la version posta, aca deberia enviar el JWT recibido durante el login y desencriptarlo para obtener el username, pero bueno,
   // No voy a agregar por el momento el jwt me parece una banda
   logger.info(`Cliente conectado: ${username}`)
 
-  let user = await userManager.getUserByUsername(username)
+  let user = userManager.getUserByUsername(username)
   if(!user) {
     logger.warn(`User ${username} not found`)
     // Agregarlo a la lista de usuarios
-    user = await userManager.addUser(username)
+    user = userManager.addUser(username)
   }
 
   user.setSocket = socket
   
-  socket.on(SocketEvents.DISCONNECT, async () => {
-    console.log("Disconnect event", socket.handshake.auth)
-    const user = await userManager.getUserBySocketId(socket.id)
-    if(user) userManager.handleDisconnect(user)
-  })
   // Enviar rooms al conectarse
   emitRoomList(socket)
 
   // Registramos a los eventos de los rooms
   registerAllRoomEvents(socket, io)
   registerMessageEvents(socket)
+  
+  
+  socket.on(SocketEvents.DISCONNECT, () => {
+    logger.warn("Se desconecto ", socket.handshake.auth)
+    const user = userManager.getUserBySocketId(socket.id)
+    if(user) userService.handleDisconnect(user)
+  })
 });
 
-startCleanupJobs()
+//startCleanupJobs()

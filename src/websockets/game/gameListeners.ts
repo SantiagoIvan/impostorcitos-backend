@@ -1,6 +1,6 @@
-import { GENERAL_CHAT_CHANNEL, io } from "../.."
+import { io } from "../.."
 import { gameManager, GameNotFoundError, Player } from "../../domain"
-import { GameEvents, PlayerLeftGameDto, PlayerReadyDto, SubmitVoteDto, SubmitWordDto } from "../../lib"
+import { GameEvents, PlayerLeftGameDto, PlayerReadyDto, RestartGameDto, RoomEvents, SubmitVoteDto, SubmitWordDto } from "../../lib"
 import { ConsoleLogger } from "../../logger"
 import { toGameDTO } from "../../mappers"
 import { toVoteArrayDTO } from "../../mappers/vote.mapper"
@@ -32,7 +32,7 @@ export function onSubmitVote(submitVoteDto: SubmitVoteDto){
     try{
         const game = gameService.vote(submitVoteDto)
         logger.info(`Game ${submitVoteDto.gameId}: ${submitVoteDto.username} has voted for ${submitVoteDto.targetPlayer}`)
-        io.to(game.id).emit(GameEvents.VOTE_SUBMITTED, toVoteArrayDTO(game.votes))
+        io.to(game.id).emit(GameEvents.VOTE_SUBMITTED, toVoteArrayDTO(game.getVotes()))
         
         if(!game.allPlayed()) return
 
@@ -60,11 +60,19 @@ export function onNextRound({gameId, username} : PlayerReadyDto){
 
 export function onPlayerDisconnect(playerLeftDto: PlayerLeftGameDto) {
     try{
-        const game = gameManager.getGameById(playerLeftDto.gameId)
-        if(!game) throw new GameNotFoundError(playerLeftDto.gameId)
-
-        gameManager.handlePlayerDisconnected(playerLeftDto.username, game)
+        gameService.handlePlayerDisconnected(playerLeftDto.username, playerLeftDto.gameId)
     }catch(error: any){
         logger.error(error.message)
+    }
+}
+
+export function onRestart(restartGameDto: RestartGameDto){
+    try {
+        logger.warn(`Restarting GAME: ${restartGameDto.gameId} with NEW TOPIC: ${restartGameDto.newTopic} and RANDOM FLAG: ${restartGameDto.randomFlag}. Sending event to connected players...`)
+        const newGame = gameService.restart(restartGameDto)
+        io.to(restartGameDto.gameId).emit(GameEvents.START_ROUND, toGameDTO(newGame))
+    } catch (error: any) {
+        logger.error(error.message)
+        io.to(restartGameDto.gameId).emit(GameEvents.END_GAME)
     }
 }

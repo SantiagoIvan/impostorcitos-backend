@@ -7,6 +7,7 @@ export function toPlayerDTO(player: Player): PlayerDto {
     hasPlayed: player.played,
     isAlive: player.alive,
     isReady: player.ready,
-    skipPhase: player.skippedPhase
+    skipPhase: player.skippedPhase,
+    isConnected: player.connected
   };
 }

@@ -82,7 +82,7 @@ export class Room{
     }
     allPlayed(): boolean {
         return this.getPlayersAsList()
-            .filter((player: Player) => player.alive)
+            .filter((player: Player) => player.alive && player.connected)
             .every((player: Player) => player.played)
     }
     getPlayersAsList(): Player[] {

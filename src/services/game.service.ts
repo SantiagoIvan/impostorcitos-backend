@@ -1,7 +1,8 @@
-import { RoomEvents, GameEvents, SubmitWordDto, PlayerReadyDto, SubmitVoteDto } from "../lib";
+import { RoomEvents, GameEvents, SubmitWordDto, PlayerReadyDto, SubmitVoteDto, RestartGameDto } from "../lib";
 import { toGameDTO } from "../mappers";
 import { Game, gameManager, GameNotFoundError, Player, PlayerNotFoundError, GamePhase, PlayerCantPlay, MoveFactory, VoteFactory, RoundResultFactory } from "../domain";
 import { ConsoleLogger, ILogger } from "../logger";
+import { io } from "..";
 
 
 class GameService {
@@ -52,7 +53,7 @@ class GameService {
             this.logger.warn("Starting discussion phase")
             // Actualizo la fase del juego y les seteo a todos de vuelta el flag hasPlayed = false
             game.setCurrentPhase = GamePhase.DISCUSSION
-            game.resetRoundTurnState()
+            game.resetPlayersState()
             game.startTurn()
         }else{
             // Calculo el siguiente turno
@@ -77,7 +78,7 @@ class GameService {
         
         this.logger.info(`End of discussion`)
         game.setCurrentPhase = GamePhase.VOTE
-        game.resetRoundTurnState()
+        game.resetPlayersState()
         game.updateLastActivity()
         game.startTurn() // Dejo el turno preparado para la siguiente fase
         return game
@@ -111,16 +112,10 @@ class GameService {
         const roundResult = RoundResultFactory.createRoundResultDto(game, lossers)
         game.addRoundResult(roundResult)
         this.logger.info("Round result: ", roundResult.expelledPlayer)
-        
-        // Si hubo ganador, lo logueamos y terminamos el juego.
-        if(game.hasCrewWon(lossers) || game.hasImpostorWon(lossers)){
-            gameManager.endGame(game.id)
-            this.logger.info("Game Ended successfully: ", gameManager.getGameById(game.id))
-        }
 
         // Configuro el Game para la siguiente ronda
         game.setCurrentPhase = GamePhase.ROUND_RESULT
-        game.resetRoundTurnState()
+        game.resetPlayersState()
         return game
     }
 
@@ -138,11 +133,75 @@ class GameService {
         if(!game.allPlayed()) return
         
         game.setCurrentPhase = GamePhase.PLAY
-        game.resetRoundTurnState()
+        game.resetPlayersState()
         game.computeFirstAvailableTurn()
         game.startTurn() // configuro el objeto Turn
         game.setCurrentRound = game.getCurrentRound + 1
         this.logger.warn(`Next round ready. First turn for ${game.getCurrentTurn.player} `, )
+        return game
+    }
+
+    endGame(gameId: string){
+        try{
+            gameManager.endGame(gameId)
+            this.logger.info("Game Ended successfully: ID ", gameId)
+            
+        }catch(error: any){
+            this.logger.error(error.message)
+        }
+
+    }
+    restart(restartGameDto: RestartGameDto){
+        const game = gameManager.getGameById(restartGameDto.gameId)
+        if(!game) throw new GameNotFoundError(restartGameDto.gameId)
+
+        // Reseteo la partida
+        game.restart(restartGameDto.newTopic, restartGameDto.randomFlag)
+
+        console.log("Restarted ", game)
+        return game
+    }
+    handlePlayerDisconnected(playerName: string, gameId: string) {
+        this.logger.info(`Se desconecto un jugador: ${playerName} del game: ${gameId}. vamos a ver si la partida sigue o que onda`)
+    
+        const game = gameManager.getGameById(gameId)
+        if(!game) throw new GameNotFoundError(gameId)
+
+        const playerFound = game.getPlayerByName(playerName)
+        if(!playerFound || !playerFound.alive || !playerFound.connected) {
+            throw new Error(`Se desconecto un jugador: ${playerName} del game: ${gameId}. No estaba conectado asi que vale verga o no se lo encontro`)
+        }
+
+        // Desconectamos al jugador
+        game.disconnectPlayer(playerName)
+
+        // Emitir que se desconecto uno
+        io.to(game.id).emit(GameEvents.PLAYER_LEFT_GAME, {playerName, game: toGameDTO(game)})
+
+        // Si esta muerto, no genero una nueva ronda, la idea es que si se va uno que se murio, me chupe un huevo
+        if(game.validStateToPlay() ){
+            // Terminar Round, y reconfigurar el game para luego enviar la nueva ronda
+            this.logger.info(`Valido para seguir jugando, vamos a ver si salteo el turno`)
+            const gameWithRoundResult = this.playerLeftRoundResult(playerName, game)
+            gameWithRoundResult.resetPlayersState()
+            gameWithRoundResult.getPlayersAsList().forEach((player: Player) => {
+                player.socket?.emit(GameEvents.ROUND_RESULT, {game: toGameDTO(gameWithRoundResult, player.name), roundResult: gameWithRoundResult.getLastRoundResult()})
+            })
+        }else{
+            // Abortar para luego emitir END Game.
+            this.logger.info(`Abortando partida...`)
+            game.abort()
+            gameManager.endGame(game.id)
+            game.getConnectedPlayers().forEach((player: Player) => {
+                player.socket?.emit(GameEvents.END_GAME, {game: toGameDTO(game, player.name), roundResult: game.getLastRoundResult()})
+            })
+            game.cleanup()
+        }
+    }
+    playerLeftRoundResult(playerName: string, game: Game): Game {
+        game.setCurrentPhase = GamePhase.ROUND_RESULT
+        const roundResult = RoundResultFactory.createRoundResultDto(game, [playerName])
+        game.addRoundResult(roundResult)
         return game
     }
 }

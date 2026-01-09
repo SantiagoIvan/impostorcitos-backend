@@ -10,6 +10,7 @@ import { UserNotFoundError } from "../errors";
 import { gameManager } from "../game";
 import { roomManager } from "../room";
 import { User } from "./User";
+import { gameService } from "../../services";
 
 class UserManager {
     constructor(
@@ -47,55 +48,6 @@ class UserManager {
     }
     getUsers(): User[]{
         return this.userRepository.getAll()
-    }
-    handleDisconnect = (user: User) => {
-        const socket = user.getSocket()
-
-        if(!socket) {
-            this.logger.warn("No socket found when removing ", user.username)
-        }
-
-        this.logger.info("A player has left the game")
-        socket?.removeAllListeners()
-
-        // Obtengo al jugador del UserManager
-        if(!user){
-            this.logger.error(`User Not Found`)
-            return
-        }
-
-        this.logger.warn(`User ${user.username} has left the game`)
-        // Me fijo si esta en una sala, para eliminarlo de ahi y volver a emitir el evento de lista a todos los clientes
-        const roomId = user.getRoomId()
-
-        if(roomId){
-            const roomFound = roomManager.getRoomById(roomId)
-            if(!roomFound) {
-                this.logger.warn(`El jugador ${user.username} no estaba en ninguna sala`)
-                return
-            }
-            
-            this.logger.info(`El jugador ${user.username} estaba en la sala ${roomId}. Actualizando lista de salas a los clientes...`)
-            roomFound.removePlayer(user.username)
-            console.log(roomFound)
-            io.emit(RoomEvents.USER_LEFT, toRoomDTO(roomFound))
-            this.logger.info(`Lista actualizada en los clietes`)
-        }
-
-        // Me fijo si esta en una partida
-        const gameId = user.getGameId()
-        if(gameId){
-            const gameFound = gameManager.getGameById(gameId)
-            if(!gameFound) {
-                this.logger.error(`El jugador ${user.username} no estaba en ninguna partida`)
-                return
-            }
-
-            this.logger.info(`Encontramos al jugador ${user.username} en ${gameId}, vamos a ver si sigue la partida y reiniciar la ronda o terminarla.`)
-            gameManager.handlePlayerDisconnected(user.username, gameFound)
-        }
-        userManager.removeUser(user.id)
-        this.logger.info("Hasta siempre, soldado")
     }
 }
 
