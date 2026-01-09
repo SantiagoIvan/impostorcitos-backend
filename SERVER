@@ -262,3 +262,10 @@
 {"timestamp":"2026-01-09T16:16:17.430Z","level":"INFO","message":"Cliente conectado: 4"}
 {"timestamp":"2026-01-09T16:16:17.695Z","level":"INFO","message":"Cliente conectado: santu"}
 {"timestamp":"2026-01-09T16:16:17.695Z","level":"WARN","message":"User santu not found"}
+{"timestamp":"2026-01-09T16:19:46.499Z","level":"INFO","message":"Socket.IO server escuchando en puerto 4000"}
+{"timestamp":"2026-01-09T16:19:47.594Z","level":"INFO","message":"Cliente conectado: 4"}
+{"timestamp":"2026-01-09T16:19:47.595Z","level":"WARN","message":"User 4 not found"}
+{"timestamp":"2026-01-09T16:19:48.252Z","level":"INFO","message":"Cliente conectado: santu"}
+{"timestamp":"2026-01-09T16:19:48.252Z","level":"WARN","message":"User santu not found"}
+{"timestamp":"2026-01-09T16:19:48.644Z","level":"INFO","message":"Cliente conectado: 4"}
+{"timestamp":"2026-01-09T16:19:48.848Z","level":"INFO","message":"Cliente conectado: 4"}
