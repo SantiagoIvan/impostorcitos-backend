@@ -42,8 +42,7 @@ export const joinRoomController = async (
 ): Promise<void> => {
   try{
     const data: JoinRoomDto = req.body;
-    console.log(data)
-    const room = await roomService.joinRoom(data);
+    const room = roomService.joinRoom(data);
     io.emit(RoomEvents.JOINED, toRoomDTO(room))
     res.status(201).json(toRoomDTO(room))
   }catch(err){

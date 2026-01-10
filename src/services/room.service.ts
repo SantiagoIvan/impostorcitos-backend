@@ -29,14 +29,12 @@ class RoomService {
         
         if(roomManager.isPlayerInRoom(incomingPlayer.username, incomingPlayer.roomId)) throw Error("Player already was in that room")
         const user = userManager.getUserByUsername(incomingPlayer.username)
-        if(!user) {
-        throw new UserNotFoundError(incomingPlayer.username)
-        }
+        if(!user) throw new UserNotFoundError(incomingPlayer.username)
+        
         const room = roomManager.getRoomById(incomingPlayer.roomId)
         if(!room) throw new RoomNotFoundError(incomingPlayer.roomId)
         
         if(room.privacy === RoomType.PRIVATE ){
-            console.log(`Comparemos contrasenias: ${incomingPlayer.password} vs ${room.getPassword()}: ${incomingPlayer.password !== room.getPassword()}`)
             if(incomingPlayer.password !== room.getPassword()) {
                 throw new IncorrectPassword()
             }
