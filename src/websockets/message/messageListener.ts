@@ -8,6 +8,7 @@ const logger = new ConsoleLogger("MESSAGE_LISTENER")
 
 export function onMessageCreate(msgDto : CreateMessageDto){
   try{
+    logger.info(`New message from ${msgDto.sender} to ${msgDto.roomId? "Room " + msgDto.roomId : msgDto.gameId? "Game "+msgDto.gameId : "General"}`)
     msgDto.text = msgDto.text.substring(0, MAX_MESSAGE_LENGTH)
     const newMessage = messageManager.addMessage(msgDto)
     const user = userManager.getUserByUsername(msgDto.sender)

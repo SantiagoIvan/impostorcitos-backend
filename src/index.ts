@@ -25,7 +25,7 @@ export const GAME_TTL = parseInt(process.env.GAME_TTL || "300000")
 export const MESSAGE_TTL = parseInt(process.env.MESSAGE_TTL || "300000")
 export const USER_TTL = parseInt(process.env.USER_TTL || "300000")
 const app = express();
-const logger = new FileLogger("SERVER")
+const logger = new ConsoleLogger("SERVER")
 
 app.use(cors({
     origin: "*",
