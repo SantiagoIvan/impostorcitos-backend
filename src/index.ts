@@ -46,7 +46,7 @@ export const io = new Server(server, {
   }
 });
 
-server.listen(PORT, () => {
+server.listen(Number(PORT), "127.0.0.1",() => {
   logger.info(`Socket.IO server escuchando en puerto ${PORT}`);
 });
 
