@@ -14,6 +14,7 @@ import { errorMiddleware } from "./middleware/error.middleware";
 import { userManager } from "./domain/user/UserManager";
 import { userService } from "./services";
 import { FileLogger } from "./logger/FileLogger";
+import { delayMiddleware } from "./middleware/delay.middleware";
 
 const PORT = process.env.PORT || 4000
 export const GENERAL_CHAT_CHANNEL = process.env.GENERAL_CHAT_CHANNEL || "GENERAL"
@@ -32,6 +33,7 @@ app.use(cors({
     credentials: true
 }));
 
+app.use(delayMiddleware(1000));
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/room", roomRoutes)

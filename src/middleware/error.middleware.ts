@@ -18,6 +18,6 @@ export const errorMiddleware = (
   console.error("Error inesperado", err);
 
   res.status(500).json({
-    message: "Error interno del servidor"
+    message: `Error: ${err.message}`
   });
 };
