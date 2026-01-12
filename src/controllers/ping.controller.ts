@@ -6,7 +6,7 @@ export const ping = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    res.status(200).json({data: "Pong v1"});
+    res.status(200).json({data: "Pong v2"});
   } catch (error) {
     next(error);
   }
