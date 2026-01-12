@@ -69,15 +69,15 @@ io.on(SocketEvents.CONNECTION, (socket) => {
   user.setSocket = socket
   
   // Enviar rooms al conectarse
-  emitRoomList(socket)
+  //emitRoomList(socket)
 
   // Registramos a los eventos de los rooms
-  registerAllRoomEvents(socket, io)
+  registerAllRoomEvents(socket)
   registerMessageEvents(socket)
   
   
   socket.on(SocketEvents.DISCONNECT, () => {
-    logger.warn("Se desconecto ", socket.handshake.auth)
+    logger.warn("Se desconecto ", socket.handshake.auth.username)
     const user = userManager.getUserBySocketId(socket.id)
     if(user) userService.handleDisconnect(user)
   })

@@ -2,7 +2,7 @@ import { Socket, Server } from "socket.io"
 import { RoomEvents, JoinRoomDto, GameEvents, RoomDto } from "../../lib"
 import { toRoomDTO, toRoomDTOArray } from "../../mappers";
 import { roomManager, Player, UserNotFoundError } from "../../domain";
-import { GENERAL_CHAT_CHANNEL } from "../..";
+import { GENERAL_CHAT_CHANNEL, io } from "../..";
 import { ConsoleLogger } from "../../logger";
 import { onPlayerReady, onRoomCreate, onRoomReady, onStartGame, onUpdateTopic } from "./room.listeners";
 import { userManager } from "../../domain/user/UserManager";
@@ -16,7 +16,7 @@ export const emitRoomList = (socket: Socket) => {
 }
 
 
-export const registerAllRoomEvents = (socket: Socket, io: Server) => {
+export const registerAllRoomEvents = (socket: Socket) => {
   /* 
   *** RoomEvents.Create ***
   - Creamos el room y el mapa para almacenar los sockets de cada jugador
@@ -37,7 +37,10 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   */
   socket.on(RoomEvents.JOIN, (incomingPlayer : JoinRoomDto) => {
     try{
-      if(roomManager.isPlayerInRoom(incomingPlayer.username, incomingPlayer.roomId)) return
+      if(roomManager.isPlayerInRoom(incomingPlayer.username, incomingPlayer.roomId)) {
+        logger.warn("entre por aca")
+        return
+      }
       const user = userManager.getUserByUsername(incomingPlayer.username)
       if(!user) {
         throw new UserNotFoundError(incomingPlayer.username)
@@ -53,7 +56,7 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
       socket.leave(GENERAL_CHAT_CHANNEL)
       socket.join(incomingPlayer.roomId)
   
-      io.emit(RoomEvents.JOINED, toRoomDTO(updatedRoom))
+      io.to(incomingPlayer.roomId).emit(RoomEvents.JOINED, toRoomDTO(updatedRoom))
     }catch(error: any){
       logger.error(error.message)
     }
@@ -67,23 +70,30 @@ export const registerAllRoomEvents = (socket: Socket, io: Server) => {
   - Lo elimino del mapa de sockets del room antes de avisarle a todos
   */
   socket.on(RoomEvents.LEAVE, (outcomingPlayer: JoinRoomDto) => {
-    if(!roomManager.isPlayerInRoom(outcomingPlayer.username, outcomingPlayer.roomId)) return
-    
-    const updatedRoom = roomManager.removePlayerfromRoom(outcomingPlayer.username, outcomingPlayer.roomId)
+    try{
+      if(!roomManager.isPlayerInRoom(outcomingPlayer.username, outcomingPlayer.roomId)) return
+      
+      const updatedRoom = roomManager.removePlayerfromRoom(outcomingPlayer.username, outcomingPlayer.roomId)
+  
+      const user = userManager.getUserByUsername(outcomingPlayer.username)
+      if(!user) {
+        throw new UserNotFoundError(outcomingPlayer.username)
+      }
+      user.setRoomId = ""
+  
+      updatedRoom.getPlayersAsList().forEach((player: Player) => {
+        player.socket?.emit(RoomEvents.USER_LEFT, toRoomDTO(updatedRoom))
+      })
+      socket.join(GENERAL_CHAT_CHANNEL)
+      socket.leave(outcomingPlayer.roomId)
 
-    const user = userManager.getUserByUsername(outcomingPlayer.username)
-    if(!user) {
-      throw new UserNotFoundError(outcomingPlayer.username)
+    }catch(error: any){
+      logger.error(error.message)
     }
-    user.setRoomId = ""
 
-    socket.join(GENERAL_CHAT_CHANNEL)
-    socket.leave(outcomingPlayer.roomId)
-
-    io.emit(RoomEvents.USER_LEFT, toRoomDTO(updatedRoom))
   })
 
-
+  
   /*
   *** RoomEvents.Ready ***
   - Jugador activa el boton Ready y le avisa al resto de los jugadores

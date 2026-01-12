@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { CreateRoomDto, createRoomSchema, JoinRoomDto, RoomEvents } from "../lib";
 import { roomService } from "../services";
 import { toRoomDTO, toRoomDTOArray } from "../mappers";
-import { roomManager } from "../domain";
+import { Player, roomManager } from "../domain";
 import { io } from "..";
 
 export const createRoomHandler = async (
@@ -43,7 +43,9 @@ export const joinRoomController = async (
   try{
     const data: JoinRoomDto = req.body;
     const room = roomService.joinRoom(data);
-    io.emit(RoomEvents.JOINED, toRoomDTO(room))
+    room.getPlayersAsList().forEach((player: Player) => {
+      player.socket?.emit(RoomEvents.JOINED, toRoomDTO(room))
+    })
     res.status(201).json(toRoomDTO(room))
   }catch(err){
     next(err)

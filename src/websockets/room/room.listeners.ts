@@ -22,6 +22,13 @@ export function onRoomReady(userReady: JoinRoomDto){
     try{
         const updatedRoom = roomService.playerReady(userReady.username, userReady.roomId)
         io.to(userReady.roomId).emit(RoomEvents.USER_READY, toRoomDTO(updatedRoom))
+        updatedRoom.getPlayersAsList().forEach((player: Player) => {
+            if(player.socket !== undefined){
+                console.warn("socket no seteado", player.socket !== undefined)
+                console.warn(player.name)
+            }
+            player.socket?.emit(RoomEvents.USER_LEFT, toRoomDTO(updatedRoom))
+        })
     }catch(error: any){
         logger.error(error.message)
     }
