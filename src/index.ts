@@ -10,6 +10,7 @@ import { startCleanupJobs } from "./jobs";
 import authRoutes from "./routes/auth.routes"
 import roomRoutes from "./routes/room.routes"
 import pingRoutes from "./routes/ping.route"
+import reportRoute from "./routes/report.route"
 import { errorMiddleware } from "./middleware/error.middleware";
 import { userManager } from "./domain/user/UserManager";
 import { userService } from "./services";
@@ -38,6 +39,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/room", roomRoutes)
 app.use("/api/ping", pingRoutes)
+app.use("/api/report", reportRoute)
 app.use(errorMiddleware);
 
 const server = http.createServer(app);
