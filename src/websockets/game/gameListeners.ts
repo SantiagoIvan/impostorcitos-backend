@@ -70,7 +70,9 @@ export function onRestart(restartGameDto: RestartGameDto){
     try {
         logger.warn(`Restarting GAME: ${restartGameDto.gameId} with NEW TOPIC: ${restartGameDto.newTopic} and RANDOM FLAG: ${restartGameDto.randomFlag}. Sending event to connected players...`)
         const newGame = gameService.restart(restartGameDto)
-        io.to(restartGameDto.gameId).emit(GameEvents.START_ROUND, toGameDTO(newGame))
+        newGame.getPlayersAsList().forEach((player: Player) => {
+            player.socket?.emit(GameEvents.START_ROUND, toGameDTO(newGame, player.name))
+        })
     } catch (error: any) {
         logger.error(error.message)
         io.to(restartGameDto.gameId).emit(GameEvents.END_GAME)

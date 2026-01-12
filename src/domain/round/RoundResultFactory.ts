@@ -10,10 +10,10 @@ export const RoundResultFactory = {
             wasTie: !game.getAborted? (lossers.length !== 1) : false,
             winner: game.getAborted ? {
                 team: undefined,
-                message: "Quitearon y se tuvo que abortar la partida, ojala te hubiesen abortado a vos hijo de puta"
+                message: "Quitearon y ya no es posible continuar la partida"
             } :crewWon(game) ? {
                 team: Team.CREW,
-                message: "Gano el pueblo trabajador"
+                message: "Ganaron los tripulantes"
             } : impostorWon(game) ? {
                 team: Team.IMPOSTOR,
                 message: "Gano el impostor"

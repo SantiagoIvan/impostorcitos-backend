@@ -4,6 +4,8 @@ import { transformSecondsToMS } from '../../lib';
 import { GamePhase, Move, Vote } from "../../domain"
 import { GENERAL_CHAT_CHANNEL } from '../..';
 import { RandomGeneratorService } from '../../services';
+import { ConsoleLogger } from '../../logger';
+
 
 export class Game {
   public readonly createdAt: Date = new Date();
@@ -239,10 +241,12 @@ export class Game {
     */
     // Esta en un estado valido si hay al menos 3 jugadores y uno de ellos es el impostor
     const hasFinished = this.getLastRoundResult()?.winner // Si se va alguien en la primera ronda, todavia no hay lastRound, por lo que puede ser undefined
-    
-    let playersList = hasFinished? 
-    this.getAlivePlayers() :
-    this.getConnectedPlayers()
+    console.log("La partida habia terminado?", hasFinished)
+
+    let playersList = 
+      hasFinished? 
+        this.getAlivePlayers() :
+        this.getConnectedPlayers()
 
     if(hasFinished && !playersList.some((player: Player) => player.name === this.room.admin)) return false
     return hasFinished ? 
@@ -275,9 +279,14 @@ export class Game {
     this.roundResults = []
     this.aborted = false
     this.topic = randomFlag? RandomGeneratorService.generateRandomTopic() : newTopic
+    console.log("Nuevo topico: ", this.topic)
     this.secretWord = RandomGeneratorService.generateRandomWordFromTopic(this.topic)
+    console.log("Nueva palabra secreta: ", this.secretWord)
+    console.log("Calculando impostor a partir de la siguiente lista: ", this.getConnectedPlayers())
     this.impostor = RandomGeneratorService.generateRandomPlayer(this.getConnectedPlayers())
+    console.log("El impostor nuevo es: ", this.impostor)
     this.orderToPlay = shuffle(this.getConnectedPlayers().map((player: Player) => player.name))
+    console.log("El orden en que van a jugar es :", this.orderToPlay)
     this.currentPhase =GamePhase.PLAY
     this.computeFirstAvailableTurn()
     this.startTurn()
