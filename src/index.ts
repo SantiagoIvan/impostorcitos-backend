@@ -57,7 +57,7 @@ io.on(SocketEvents.CONNECTION, (socket) => {
   // Esto solamente ocurre durante el handshake
   // En la version posta, aca deberia enviar el JWT recibido durante el login y desencriptarlo para obtener el username, pero bueno,
   // No voy a agregar por el momento el jwt me parece una banda
-  logger.info(`Cliente conectado: ${username}`)
+  logger.info(`Cliente conectado: ${username}. Ultima version test`)
 
   let user = userManager.getUserByUsername(username)
   if(!user) {
