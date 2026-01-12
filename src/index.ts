@@ -33,7 +33,7 @@ app.use(cors({
     credentials: true
 }));
 
-app.use(delayMiddleware(1000));
+//app.use(delayMiddleware(1000));
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/room", roomRoutes)
