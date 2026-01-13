@@ -1,4 +1,4 @@
-import { Player, PlayerNotFoundError, Room, RoundResult, RoundResultFactory } from '../';
+import { Player, PlayerNotFoundError, Room, RoundResult, RoundResultFactory, TurnTimer } from '../';
 import { Team, Turn, getPlayersWithMostVotes, shuffle } from '../../lib';
 import { transformSecondsToMS } from '../../lib';
 import { GamePhase, Move, Vote } from "../../domain"
@@ -27,7 +27,14 @@ export class Game {
     private secretWord: string,
     private orderToPlay: string[],
     private currentTurn: Turn,
+    private turnTimer?: TurnTimer
   ) {}
+  getTurnTimer(){
+    return this.turnTimer
+  }
+  setTurnTimer(turntimer: TurnTimer){
+    this.turnTimer = turntimer
+  }
   getRoundResults(){
     return this.roundResults
   }
@@ -97,16 +104,24 @@ export class Game {
   allPlayed(): boolean{
     return this.room.allPlayed()
   }
-  startTurn(){
+  getTurnDurationMsByPhase(){
+    return this.currentPhase === GamePhase.PLAY? transformSecondsToMS(this.room.moveTime):
+                            this.getCurrentPhase === GamePhase.DISCUSSION? 
+                            transformSecondsToMS(this.room.discussionTime): 
+                            transformSecondsToMS(this.room.voteTime)
+  }
+  buildCurrentTurn(){
+    const turnDurationMS = this.getTurnDurationMsByPhase()
+    const endsAt = Date.now() + turnDurationMS
+    
+    // Esto es lo que toma cada cliente para configurarse el timer
     this.currentTurn = {
         player: this.orderToPlay[this.nextTurnIndexPlayer],
-        duration: 
-            this.currentPhase === GamePhase.PLAY? transformSecondsToMS(this.room.moveTime): 
-            this.getCurrentPhase === GamePhase.DISCUSSION? 
-              transformSecondsToMS(this.room.discussionTime): 
-              transformSecondsToMS(this.room.voteTime),
-        startedAt: Date.now()
-    }
+        duration: turnDurationMS,
+        startedAt: Date.now(),
+        endsAt: endsAt
+    } 
+
     this.updateLastActivity()
   }
   getPlayersAsList(): Player[] {
@@ -230,7 +245,9 @@ export class Game {
 
     player.disconnect(this)
   }
-  
+  hasFinished(): boolean{
+    return this.getLastRoundResult()?.winner? true: false
+  }
   validStateToPlay(){
     /*
     Si la partida esta en curso, simplemente me fijo la cantidad de jugadores vivos y si uno de ellos es el impostor
@@ -240,16 +257,17 @@ export class Game {
     - Me fijo la cantidad de jugadores conectados, ignorando quien es el impostor
     */
     // Esta en un estado valido si hay al menos 3 jugadores y uno de ellos es el impostor
-    const hasFinished = this.getLastRoundResult()?.winner // Si se va alguien en la primera ronda, todavia no hay lastRound, por lo que puede ser undefined
-    console.log("La partida habia terminado?", hasFinished)
+    
+    // Si se va alguien en la primera ronda, todavia no hay lastRound, por lo que puede ser undefined
+    console.log("La partida habia terminado?", this.hasFinished())
 
     let playersList = 
-      hasFinished? 
+      !this.hasFinished()? 
         this.getAlivePlayers() :
         this.getConnectedPlayers()
 
-    if(hasFinished && !playersList.some((player: Player) => player.name === this.room.admin)) return false
-    return hasFinished ? 
+    if(this.hasFinished() && !playersList.some((player: Player) => player.name === this.room.admin)) return false
+    return !this.hasFinished() ? 
     playersList.some((player: Player) => player.name === this.impostor) && playersList.length >=3 :
     playersList.length >=3
       
@@ -289,7 +307,7 @@ export class Game {
     console.log("El orden en que van a jugar es :", this.orderToPlay)
     this.currentPhase =GamePhase.PLAY
     this.computeFirstAvailableTurn()
-    this.startTurn()
+    this.buildCurrentTurn()
 
   }
 }

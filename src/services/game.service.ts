@@ -1,6 +1,6 @@
 import { RoomEvents, GameEvents, SubmitWordDto, PlayerReadyDto, SubmitVoteDto, RestartGameDto } from "../lib";
 import { toGameDTO } from "../mappers";
-import { Game, gameManager, GameNotFoundError, Player, PlayerNotFoundError, GamePhase, PlayerCantPlay, MoveFactory, VoteFactory, RoundResultFactory } from "../domain";
+import { Game, gameManager, GameNotFoundError, Player, PlayerNotFoundError, GamePhase, PlayerCantPlay, MoveFactory, VoteFactory, RoundResultFactory, TurnTimer } from "../domain";
 import { ConsoleLogger, ILogger } from "../logger";
 import { io } from "..";
 
@@ -54,11 +54,11 @@ class GameService {
             // Actualizo la fase del juego y les seteo a todos de vuelta el flag hasPlayed = false
             game.setCurrentPhase = GamePhase.DISCUSSION
             game.resetPlayersState()
-            game.startTurn()
+            game.buildCurrentTurn()
         }else{
             // Calculo el siguiente turno
             game.computeNextTurn()
-            game.startTurn()
+            game.buildCurrentTurn()
         }
         return game
     }
@@ -80,7 +80,7 @@ class GameService {
         game.setCurrentPhase = GamePhase.VOTE
         game.resetPlayersState()
         game.updateLastActivity()
-        game.startTurn() // Dejo el turno preparado para la siguiente fase
+        game.buildCurrentTurn() // Dejo el turno preparado para la siguiente fase
         return game
     }
 
@@ -135,7 +135,7 @@ class GameService {
         game.setCurrentPhase = GamePhase.PLAY
         game.resetPlayersState()
         game.computeFirstAvailableTurn()
-        game.startTurn() // configuro el objeto Turn
+        game.buildCurrentTurn() // configuro el objeto Turn
         game.setCurrentRound = game.getCurrentRound + 1
         this.logger.warn(`Next round ready. First turn for ${game.getCurrentTurn.player} `, )
         return game
@@ -168,7 +168,7 @@ class GameService {
         if(!game) throw new GameNotFoundError(gameId)
 
         const playerFound = game.getPlayerByName(playerName)
-        if(!playerFound || !playerFound.alive || !playerFound.connected) {
+        if(!playerFound || !playerFound.connected) {
             throw new Error(`Se desconecto un jugador: ${playerName} del game: ${gameId}. No estaba conectado asi que vale verga o no se lo encontro`)
         }
 
@@ -203,6 +203,31 @@ class GameService {
         const roundResult = RoundResultFactory.createRoundResultDto(game, [playerName])
         game.addRoundResult(roundResult)
         return game
+    }
+    startTurn(game: Game){
+        // limpiar timer previo si existía
+        const turnTimer = game.getTurnTimer()
+        if (turnTimer) {
+            clearTimeout(turnTimer.timeout)
+        }
+
+        const turnDurationMS = game.getTurnDurationMsByPhase()
+        const endsAt = Date.now() + turnDurationMS
+
+        const timeout = setTimeout(() => {
+            this.onTurnTimeout(game)
+        }, game.getCurrentTurn.duration)
+
+        const newTurnTimer = new TurnTimer(timeout, endsAt)
+        game.setTurnTimer(newTurnTimer)
+
+        //// Agregar evento?
+        //io.to(game.id).emit(GameEvents.TURN_STARTED, {
+        //    endsAt
+        //})
+    }
+    onTurnTimeout(game: Game){
+        
     }
 }
 

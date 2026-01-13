@@ -71,7 +71,7 @@ export function onPlayerReady({username, gameId}:{username: string, gameId: stri
         found.setIsReady(true)
         if(game.allReady()) {
           game.resetPlayersState()
-          game.startTurn()
+          game.buildCurrentTurn()
           game.getPlayersAsList().forEach((p: Player) => {
             p.socket?.join(game.id)
             registerGameEvents(p.socket)
