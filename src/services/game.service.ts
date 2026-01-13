@@ -90,12 +90,14 @@ class GameService {
         const player = this.validatePlayerExistsIngame(game, submitVoteDto.username)
         this.validatePlayerCanPlayInPhase(game, GamePhase.VOTE, player)
 
-        // Creo el voto y lo agrego a la lista
-        const vote = VoteFactory.createVote(submitVoteDto, game.getCurrentRound)
-        game.addVote(vote)
+        // Creo el voto y lo agrego a la lista. Si el voto es nulo, no lo agrego
+        if(submitVoteDto.targetPlayer !== ""){
+            const vote = VoteFactory.createVote(submitVoteDto, game.getCurrentRound)
+            game.addVote(vote)
+        }
         game.updateLastActivity()
         player.markHasPlayed()
-        this.logger.info(`${player.name} has voted `, vote.votedPlayer)
+        this.logger.info(`${player.name} has voted `, submitVoteDto.targetPlayer)
 
         return game
     }
