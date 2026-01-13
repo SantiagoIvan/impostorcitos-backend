@@ -1,5 +1,5 @@
 import { CreateRoomDto, JoinRoomDto, RoomEvents } from "../lib"
-import { IncorrectPassword, Player, PlayerNotFoundError, Room, roomManager, RoomNotFoundError, RoomType, UserNotFoundError } from "../domain"
+import { IncorrectPassword, Player, PlayerNotFoundError, Room, RoomIsFullError, roomManager, RoomNotFoundError, RoomType, UserNotFoundError } from "../domain"
 import { ConsoleLogger, ILogger } from "../logger"
 import { toRoomDTO, toRoomDTOArray } from "../mappers"
 import { GENERAL_CHAT_CHANNEL, io } from ".."
@@ -36,8 +36,13 @@ class RoomService {
         
         if(room.privacy === RoomType.PRIVATE ){
             if(incomingPlayer.password !== room.getPassword()) {
+                this.logger.warn(`Password is incorrect: Incoming pass: ${incomingPlayer.password}. Room pass: ${room.getPassword()}`)
                 throw new IncorrectPassword()
             }
+        }
+        if(room.isFull()) {
+            this.logger.warn(`Room ${room.id} is full. Max players: ${room.maxPlayers}. Current Players: ${room.getPlayerCount()}`)
+            throw new RoomIsFullError()
         }
 
         const player = new Player(incomingPlayer.username, user)
