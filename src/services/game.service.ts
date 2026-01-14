@@ -41,7 +41,7 @@ class GameService {
         const player = this.validatePlayerExistsIngame(game, submitWordDto.username)
         this.validatePlayerCanPlayInPhase(game, GamePhase.PLAY, player)
 
-        // Creacio de la Jugada
+        // Creacion de la Jugada
         const move = MoveFactory.createMove(submitWordDto, game.getCurrentRound)
         game.addMove(move)
         game.updateLastActivity()
@@ -54,11 +54,11 @@ class GameService {
             // Actualizo la fase del juego y les seteo a todos de vuelta el flag hasPlayed = false
             game.setCurrentPhase = GamePhase.DISCUSSION
             game.resetPlayersState()
-            game.buildCurrentTurn()
+            game.startTurn()
         }else{
             // Calculo el siguiente turno
             game.computeNextTurn()
-            game.buildCurrentTurn()
+            game.startTurn()
         }
         return game
     }
@@ -80,7 +80,7 @@ class GameService {
         game.setCurrentPhase = GamePhase.VOTE
         game.resetPlayersState()
         game.updateLastActivity()
-        game.buildCurrentTurn() // Dejo el turno preparado para la siguiente fase
+        game.startTurn() // Dejo el turno preparado para la siguiente fase
         return game
     }
 
@@ -137,7 +137,7 @@ class GameService {
         game.setCurrentPhase = GamePhase.PLAY
         game.resetPlayersState()
         game.computeFirstAvailableTurn()
-        game.buildCurrentTurn() // configuro el objeto Turn
+        game.startTurn() // configuro el objeto Turn y el timer
         game.setCurrentRound = game.getCurrentRound + 1
         this.logger.warn(`Next round ready. First turn for ${game.getCurrentTurn.player} `, )
         return game
@@ -205,31 +205,6 @@ class GameService {
         const roundResult = RoundResultFactory.createRoundResultDto(game, [playerName])
         game.addRoundResult(roundResult)
         return game
-    }
-    startTurn(game: Game){
-        // limpiar timer previo si existía
-        const turnTimer = game.getTurnTimer()
-        if (turnTimer) {
-            clearTimeout(turnTimer.timeout)
-        }
-
-        const turnDurationMS = game.getTurnDurationMsByPhase()
-        const endsAt = Date.now() + turnDurationMS
-
-        const timeout = setTimeout(() => {
-            this.onTurnTimeout(game)
-        }, game.getCurrentTurn.duration)
-
-        const newTurnTimer = new TurnTimer(timeout, endsAt)
-        game.setTurnTimer(newTurnTimer)
-
-        //// Agregar evento?
-        //io.to(game.id).emit(GameEvents.TURN_STARTED, {
-        //    endsAt
-        //})
-    }
-    onTurnTimeout(game: Game){
-        
     }
 }
 

@@ -70,8 +70,8 @@ export function onPlayerReady({username, gameId}:{username: string, gameId: stri
     
         found.setIsReady(true)
         if(game.allReady()) {
-          game.resetPlayersState()
-          game.buildCurrentTurn()
+          game.resetPlayersState() // Les ponemos el flag de ready en false y skipPhase a todos.
+          game.startTurn() // configuro el currentTurn y el timer
           game.getPlayersAsList().forEach((p: Player) => {
             p.socket?.join(game.id)
             registerGameEvents(p.socket)

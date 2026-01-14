@@ -3,7 +3,7 @@ import { Team, Turn, getPlayersWithMostVotes, shuffle } from '../../lib';
 import { transformSecondsToMS } from '../../lib';
 import { GamePhase, Move, Vote } from "../../domain"
 import { GENERAL_CHAT_CHANNEL } from '../..';
-import { RandomGeneratorService } from '../../services';
+import { gameService, RandomGeneratorService } from '../../services';
 import { ConsoleLogger } from '../../logger';
 
 
@@ -110,9 +110,7 @@ export class Game {
                             transformSecondsToMS(this.room.discussionTime): 
                             transformSecondsToMS(this.room.voteTime)
   }
-  buildCurrentTurn(){
-    const turnDurationMS = this.getTurnDurationMsByPhase()
-    const endsAt = Date.now() + turnDurationMS
+  buildCurrentTurn(turnDurationMS: number, endsAt: number){
     
     // Esto es lo que toma cada cliente para configurarse el timer
     this.currentTurn = {
@@ -272,7 +270,42 @@ export class Game {
     playersList.length >=3
       
   }
+  startTurn(){
+    // limpiar timer previo si existía
+    console.log("Empezando nuevo turno...")
+    if (this.turnTimer) {
+      console.log("Limpiando timer anterior...")
+      clearTimeout(this.turnTimer.timeout)
+    }
 
+    const turnDurationMS = this.getTurnDurationMsByPhase()
+    const endsAt = Date.now() + turnDurationMS
+    
+    const timeout = setTimeout(() => {
+      this.onTurnTimeout()
+    }, this.currentTurn.duration)
+    
+    const newTurnTimer = new TurnTimer(timeout, endsAt)
+    this.turnTimer = newTurnTimer
+    this.buildCurrentTurn(turnDurationMS, endsAt)
+    console.log(`
+      Siguiente turno: Fase ${this.currentPhase} - 
+      Duracion ${this.currentTurn.duration} - 
+      EndsAt ${new Date(this.currentTurn.endsAt).toISOString()} - 
+      Jugador ${this.currentTurn.player}
+    `)
+  }
+  onTurnTimeout(){
+    console.log(`
+      Se termino el turno para: Fase ${this.currentPhase} - 
+      Duracion ${this.currentTurn.duration} - 
+      EndsAt ${new Date(this.currentTurn.endsAt).toISOString()} - 
+      Jugador ${this.currentTurn.player}
+    `)
+    if (this.turnTimer) {
+        clearTimeout(this.turnTimer.timeout)
+    }
+  }
   restart(newTopic: string, randomFlag: boolean){
     /*
       1. Reseteamos el estado de cada jugador, haciendo que no este listo, que este vivo y que no haya skipeado fase si es que esta conectado
@@ -307,7 +340,7 @@ export class Game {
     console.log("El orden en que van a jugar es :", this.orderToPlay)
     this.currentPhase =GamePhase.PLAY
     this.computeFirstAvailableTurn()
-    this.buildCurrentTurn()
+    this.startTurn()
 
   }
 }
