@@ -303,8 +303,10 @@ export class Game {
       Jugador ${this.currentTurn.player}
     `)
     if (this.turnTimer) {
-        clearTimeout(this.turnTimer.timeout)
+      clearTimeout(this.turnTimer.timeout)
     }
+    // falta marcarlo como que ya jugo y calcular el siguiente. Esta funcion de siguienteTurno debe ser llamada tambien en el listener, ya que sea por timeout o por haber jugado
+    // se calcula de la misma forma
   }
   restart(newTopic: string, randomFlag: boolean){
     /*
