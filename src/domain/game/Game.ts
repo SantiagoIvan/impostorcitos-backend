@@ -1,11 +1,13 @@
 import { Player, PlayerNotFoundError, Room, RoundResult, RoundResultFactory, TurnTimer } from '../';
-import { Team, Turn, getPlayersWithMostVotes, shuffle } from '../../lib';
+import { GameEvents, Team, Turn, getPlayersWithMostVotes, shuffle } from '../../lib';
 import { transformSecondsToMS } from '../../lib';
 import { GamePhase, Move, Vote } from "../../domain"
 import { GENERAL_CHAT_CHANNEL } from '../..';
 import { gameService, RandomGeneratorService } from '../../services';
 import { ConsoleLogger } from '../../logger';
+import { onDiscussionTurnEnd, onSubmitVote, onSubmitWord } from '../../websockets';
 
+const logger = new ConsoleLogger("GAME_SOCKETS")
 
 export class Game {
   public readonly createdAt: Date = new Date();
@@ -160,7 +162,6 @@ export class Game {
     let baseIndex = index !== undefined? index:this.nextTurnIndexPlayer + 1
     while(baseIndex < this.orderToPlay.length){
         const player = this.getPlayerByName(this.orderToPlay[baseIndex])
-        console.log(`Desde computeNextTurn name alive hasplayed`, player?.name, player?.alive, player?.played, player?.connected)
         if(player && player.canPlay()) {
             this.nextTurnIndexPlayer = baseIndex
             return
@@ -257,8 +258,6 @@ export class Game {
     // Esta en un estado valido si hay al menos 3 jugadores y uno de ellos es el impostor
     
     // Si se va alguien en la primera ronda, todavia no hay lastRound, por lo que puede ser undefined
-    console.log("La partida habia terminado?", this.hasFinished())
-
     let playersList = 
       !this.hasFinished()? 
         this.getAlivePlayers() :
@@ -272,41 +271,57 @@ export class Game {
   }
   startTurn(){
     // limpiar timer previo si existía
-    console.log("Empezando nuevo turno...")
     if (this.turnTimer) {
-      console.log("Limpiando timer anterior...")
       clearTimeout(this.turnTimer.timeout)
     }
 
     const turnDurationMS = this.getTurnDurationMsByPhase()
     const endsAt = Date.now() + turnDurationMS
+    this.buildCurrentTurn(turnDurationMS, endsAt)
     
     const timeout = setTimeout(() => {
       this.onTurnTimeout()
     }, this.currentTurn.duration)
-    
     const newTurnTimer = new TurnTimer(timeout, endsAt)
     this.turnTimer = newTurnTimer
-    this.buildCurrentTurn(turnDurationMS, endsAt)
-    console.log(`
+
+    logger.info(`
       Siguiente turno: Fase ${this.currentPhase} - 
-      Duracion ${this.currentTurn.duration} - 
-      EndsAt ${new Date(this.currentTurn.endsAt).toISOString()} - 
       Jugador ${this.currentTurn.player}
     `)
   }
   onTurnTimeout(){
-    console.log(`
+    logger.warn(`
       Se termino el turno para: Fase ${this.currentPhase} - 
-      Duracion ${this.currentTurn.duration} - 
-      EndsAt ${new Date(this.currentTurn.endsAt).toISOString()} - 
       Jugador ${this.currentTurn.player}
     `)
     if (this.turnTimer) {
       clearTimeout(this.turnTimer.timeout)
     }
-    // falta marcarlo como que ya jugo y calcular el siguiente. Esta funcion de siguienteTurno debe ser llamada tambien en el listener, ya que sea por timeout o por haber jugado
-    // se calcula de la misma forma
+
+    switch (this.currentPhase) {
+      case GamePhase.PLAY:
+        // Si el tipo tiene lag o colgo, el server va a jugar ua palabra vacia por el, y entra por el flujo normal donde se lo setea
+        // como que jugo y se le pone una palabra vacia, si despues el cliente emite el evento, ya habra jugado y no contara su nueva palabra, es mas, el server le va a enviar
+        // el nuevo turno asi que
+        onSubmitWord({gameId: this.id, username: this.currentTurn.player, word: ""})
+        break;
+      case GamePhase.DISCUSSION:
+        // El server simula la emision del evento de discuss de cada uno de los que no jugaron.
+        this.getAlivePlayers().filter((p: Player) => !p.played).forEach((p: Player)=> {
+          onDiscussionTurnEnd({gameId: this.id, username: p.name})
+        })
+        break;
+      case GamePhase.VOTE:
+        // El server simula voto nulo por cada uno de los que faltan
+        this.getAlivePlayers().filter((p: Player) => !p.played).forEach((p: Player)=> {
+          onSubmitVote({gameId: this.id, username: p.name, targetPlayer: ""})
+        })
+        break;
+      default:
+        break;
+    }
+    
   }
   restart(newTopic: string, randomFlag: boolean){
     /*
@@ -332,14 +347,14 @@ export class Game {
     this.roundResults = []
     this.aborted = false
     this.topic = randomFlag? RandomGeneratorService.generateRandomTopic() : newTopic
-    console.log("Nuevo topico: ", this.topic)
+    logger.warn("Nuevo topico: ", this.topic)
     this.secretWord = RandomGeneratorService.generateRandomWordFromTopic(this.topic)
-    console.log("Nueva palabra secreta: ", this.secretWord)
-    console.log("Calculando impostor a partir de la siguiente lista: ", this.getConnectedPlayers())
+    logger.warn("Nueva palabra secreta: ", this.secretWord)
+    logger.warn("Calculando impostor a partir de la siguiente lista: ", this.getConnectedPlayers())
     this.impostor = RandomGeneratorService.generateRandomPlayer(this.getConnectedPlayers())
-    console.log("El impostor nuevo es: ", this.impostor)
+    logger.warn("El impostor nuevo es: ", this.impostor)
     this.orderToPlay = shuffle(this.getConnectedPlayers().map((player: Player) => player.name))
-    console.log("El orden en que van a jugar es :", this.orderToPlay)
+    logger.warn("El orden en que van a jugar es :", this.orderToPlay)
     this.currentPhase =GamePhase.PLAY
     this.computeFirstAvailableTurn()
     this.startTurn()

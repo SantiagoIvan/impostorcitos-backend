@@ -70,13 +70,14 @@ export function onPlayerReady({username, gameId}:{username: string, gameId: stri
     
         found.setIsReady(true)
         if(game.allReady()) {
-          game.resetPlayersState() // Les ponemos el flag de ready en false y skipPhase a todos. y el hasPlayed
-          game.startTurn() // configuro el currentTurn y el timer
-          game.getPlayersAsList().forEach((p: Player) => {
-            p.socket?.join(game.id)
-            registerGameEvents(p.socket)
-          })
-          gameService.updateGameStateToClient(game, GameEvents.START_ROUND)
+            console.log("me active cuando le cargo a ", username)
+            game.resetPlayersState() // Les ponemos el flag de ready en false y skipPhase a todos. y el hasPlayed
+            game.startTurn() // configuro el currentTurn y el timer
+            game.getPlayersAsList().forEach((p: Player) => {
+                p.socket?.join(game.id)
+                registerGameEvents(p.socket)
+            })
+            gameService.updateGameStateToClient(game, GameEvents.START_ROUND)
         }
     }catch(error: any){
         logger.error(error.message)

@@ -61,7 +61,7 @@ export class Player {
   disconnect(game: Game) {
     this.isConnected = false
     this.cleanUpGameListeners(game)
-    console.log("jugador Desconectado", this)
+    console.log("jugador Desconectado", this.name)
   }
   toogleIsReady(){
     this.isReady = !this.isReady

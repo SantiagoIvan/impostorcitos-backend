@@ -1,6 +1,6 @@
 import { RoomEvents, GameEvents, SubmitWordDto, PlayerReadyDto, SubmitVoteDto, RestartGameDto } from "../lib";
 import { toGameDTO } from "../mappers";
-import { Game, gameManager, GameNotFoundError, Player, PlayerNotFoundError, GamePhase, PlayerCantPlay, MoveFactory, VoteFactory, RoundResultFactory, TurnTimer } from "../domain";
+import { Game, gameManager, GameNotFoundError, Player, PlayerNotFoundError, GamePhase, PlayerCantPlay, MoveFactory, VoteFactory, RoundResultFactory, TurnTimer, Vote, Move } from "../domain";
 import { ConsoleLogger, ILogger } from "../logger";
 import { io } from "..";
 
@@ -25,7 +25,24 @@ class GameService {
         if(
             (game.getCurrentPhase !== targetPhase) || 
             !player.canPlay()
-        ) throw new PlayerCantPlay(player.name, game.id)
+        ) {
+            console.log("No paso de validatePlayer", player, targetPhase, game)
+            throw new PlayerCantPlay(player.name, game.id)
+        }
+    }
+    validatePlayerHasntVoted(game: Game, player: Player){
+        // Antes de crear el voto me fijo si ya voto en esta ronda.
+        if(game.getVotes().some((vote: Vote) => vote.roundId === game.getCurrentRound && vote.player === player.name)){
+            this.logger.warn(`El usuario ${player.name} ya voto. Seguramente se le vencio el turno.`)
+            throw new PlayerCantPlay(player.name, game.id)
+        }
+    }
+    validatePlayerHasntMoved(game: Game, player: Player){
+        // Antes de crear la jugada me fijo si ya voto en esta ronda.
+        if(game.getMoves().some((move: Move) => move.roundId === game.getCurrentRound && move.player === player.name)){
+            this.logger.warn(`El usuario ${player.name} ya jugo. Seguramente se le vencio el turno.`)
+            throw new PlayerCantPlay(player.name, game.id)
+        }
     }
     updateGameStateToClient(game: Game, event: RoomEvents | GameEvents) {
         game.getPlayersAsList().forEach((player: Player) => {
@@ -40,6 +57,7 @@ class GameService {
         const game = this.validateGameExists(submitWordDto.gameId)
         const player = this.validatePlayerExistsIngame(game, submitWordDto.username)
         this.validatePlayerCanPlayInPhase(game, GamePhase.PLAY, player)
+        this.validatePlayerHasntMoved(game, player)
 
         // Creacion de la Jugada
         const move = MoveFactory.createMove(submitWordDto, game.getCurrentRound)
@@ -50,6 +68,9 @@ class GameService {
 
         // Verifico si todos jugaron para saber si activo la siguiente fase
         if(game.allPlayed()){
+            // Si todos jugaron, cierro el timer
+            const turnTimer = game.getTurnTimer()
+            if(turnTimer) clearTimeout(turnTimer.timeout)
             this.logger.warn("Starting discussion phase")
             // Actualizo la fase del juego y les seteo a todos de vuelta el flag hasPlayed = false
             game.setCurrentPhase = GamePhase.DISCUSSION
@@ -76,6 +97,10 @@ class GameService {
         // Si todavia no estan todos listos, me miro el pupo esperando a que el ultimo llegue
         if(!game.allPlayed()) return
         
+        // Si todos jugaron, cierro el timer
+        const turnTimer = game.getTurnTimer()
+        if(turnTimer) clearTimeout(turnTimer.timeout)
+
         this.logger.info(`End of discussion`)
         game.setCurrentPhase = GamePhase.VOTE
         game.resetPlayersState()
@@ -89,7 +114,8 @@ class GameService {
         const game = this.validateGameExists(submitVoteDto.gameId)
         const player = this.validatePlayerExistsIngame(game, submitVoteDto.username)
         this.validatePlayerCanPlayInPhase(game, GamePhase.VOTE, player)
-
+        this.validatePlayerHasntVoted(game, player)
+        
         // Creo el voto y lo agrego a la lista. Si el voto es nulo, no lo agrego
         if(submitVoteDto.targetPlayer !== ""){
             const vote = VoteFactory.createVote(submitVoteDto, game.getCurrentRound)

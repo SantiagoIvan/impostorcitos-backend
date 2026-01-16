@@ -30,19 +30,21 @@ export function onDiscussionTurnEnd({username,gameId}:PlayerReadyDto){
 
 export function onSubmitVote(submitVoteDto: SubmitVoteDto){
     try{
+        // Al momento de votar se verifica si ya voto antes en la misma ronda, cosa de no contar 2 veces.
         const game = gameService.vote(submitVoteDto)
         logger.info(`Game ${submitVoteDto.gameId}: ${submitVoteDto.username} has voted for ${submitVoteDto.targetPlayer}`)
         io.to(game.id).emit(GameEvents.VOTE_SUBMITTED, toVoteArrayDTO(game.getVotes()))
         
         if(!game.allPlayed()) return
 
+        
         const finalRoundGame = gameService.computeGameResults(game)
         // Le envio el resultado de la ronda a los jugadores si todos jugaron
         finalRoundGame.getPlayersAsList().forEach((player: Player) => {
             player.socket?.emit(GameEvents.ROUND_RESULT, {game: toGameDTO(finalRoundGame, player.name), roundResult: finalRoundGame.getLastRoundResult()})
         })
 
-        logger.info("Game ended")
+        logger.info("Votation ended")
     }catch(error: any){
         logger.error(error.message)
     }
