@@ -73,6 +73,11 @@ io.on(SocketEvents.CONNECTION, (socket) => {
   // Enviar rooms al conectarse
   //emitRoomList(socket)
 
+  // Enviar serverTime al conectarse para sincronnizar relojes
+  socket.emit("SERVER_TIME", {
+    serverNow: Date.now(),
+  });
+
   // Registramos a los eventos de los rooms
   registerAllRoomEvents(socket)
   registerMessageEvents(socket)
