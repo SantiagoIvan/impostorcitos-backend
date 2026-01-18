@@ -278,7 +278,10 @@ export class Game {
     const turnDurationMS = this.getTurnDurationMsByPhase()
     const endsAt = Date.now() + turnDurationMS
     this.buildCurrentTurn(turnDurationMS, endsAt)
-    
+    console.log("current turn: ", this.currentTurn)
+    console.log("turn duration is: ", turnDurationMS)
+    console.log("Duration turn is ", (endsAt - this.currentTurn.startedAt) / 1000)
+
     const timeout = setTimeout(() => {
       this.onTurnTimeout()
     }, this.currentTurn.duration)

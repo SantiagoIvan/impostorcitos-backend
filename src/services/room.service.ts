@@ -56,6 +56,9 @@ class RoomService {
     
         return updatedRoom
     }
+    getRoomById(id: string): Room | undefined{
+        return roomManager.getRoomById(id)
+    }
 }
 
 export const roomService = new RoomService(

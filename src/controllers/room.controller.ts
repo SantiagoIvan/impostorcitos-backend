@@ -35,6 +35,30 @@ export const getRoomsHandler = async (
   }
 };
 
+export const getRoomById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const room = roomService.getRoomById(id);
+    
+    if (!room) {
+      res.status(404).json({
+        message: "Room not found",
+      });
+      return
+    }
+
+    res.status(200).json(toRoomDTO(room));
+  } catch (error) {
+    console.error("Error fetching room:", error);
+    next(error)
+  }
+};
+
 export const joinRoomController = async (
   req: Request,
   res: Response,
