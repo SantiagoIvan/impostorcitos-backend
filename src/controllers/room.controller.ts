@@ -43,7 +43,9 @@ export const getRoomById = async (
   try {
     const { id } = req.params;
 
+    console.log("Searching room ", id)
     const room = roomService.getRoomById(id);
+    console.log("Found ", room)
     
     if (!room) {
       res.status(404).json({
@@ -66,7 +68,9 @@ export const joinRoomController = async (
 ): Promise<void> => {
   try{
     const data: JoinRoomDto = req.body;
+    console.log("Trying to join room", data)
     const room = roomService.joinRoom(data);
+    console.log("Updated room: ", room)
     room.getPlayersAsList().forEach((player: Player) => {
       player.socket?.emit(RoomEvents.JOINED, toRoomDTO(room))
     })
